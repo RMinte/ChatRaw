@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatRaw</title>
+    <link rel="icon" id="favicon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+    <script defer src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js"></script>
+    <script src="https://unpkg.com/marked@9.1.6/marked.min.js"></script>
+    <script src="https://unpkg.com/highlight.js@11.9.0/lib/highlight.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/highlight.js@11.9.0/styles/github-dark.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body x-data="app()" x-init="init()">
+    <!-- 左侧边栏 -->
+    <aside class="sidebar" :class="{ 'collapsed': sidebarCollapsed }">
+        <div class="sidebar-header">
+            <div class="logo" x-show="!sidebarCollapsed">
+                <img x-show="settings.ui_settings.logo_data" :src="settings.ui_settings.logo_data" alt="Logo" class="logo-img">
+                <span class="logo-text" x-text="settings.ui_settings.logo_text || 'JustChat'"></span>
+            </div>
+            <button class="btn-icon" @click="sidebarCollapsed = !sidebarCollapsed" :title="sidebarCollapsed ? t('expand') : t('collapse')">
+                <svg x-show="!sidebarCollapsed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M11 17l-5-5 5-5M18 17l-5-5 5-5"/>
+                </svg>
+                <svg x-show="sidebarCollapsed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M13 7l5 5-5 5M6 7l5 5-5 5"/>
+                </svg>
+            </button>
+        </div>
+        
+        <button class="btn-new-chat" @click="createNewChat()" x-show="!sidebarCollapsed">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+            <span x-text="t('newChat')"></span>
+        </button>
+        <button class="btn-icon btn-new-chat-collapsed" @click="createNewChat()" x-show="sidebarCollapsed" :title="t('newChat')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"/>
+            </svg>
+        </button>
+
+        <div class="chat-list" x-show="!sidebarCollapsed">
+            <template x-for="chat in chats" :key="chat.id">
+                <div class="chat-item" :class="{ 'active': currentChatId === chat.id }" @click="selectChat(chat.id)">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                    </svg>
+                    <span class="chat-title" x-text="chat.title"></span>
+                    <button class="btn-delete" @click.stop="deleteChat(chat.id)" :title="t('delete')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+            </template>
+        </div>
+
+        <div class="sidebar-footer" x-show="!sidebarCollapsed">
+            <button class="btn-settings" @click="showSettings = true">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+                <span x-text="t('settings')"></span>
+            </button>
+        </div>
+        <button class="btn-icon sidebar-settings-collapsed" @click="showSettings = true" x-show="sidebarCollapsed" :title="t('settings')">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+        </button>
+    </aside>
+
+    <!-- 主聊天区域 -->
+    <main class="main-content">
+        <div class="chat-container">
+            <!-- 欢迎界面 -->
+            <div class="welcome" x-show="messages.length === 0">
+                <div class="welcome-logo">
+                    <img x-show="settings.ui_settings.logo_data" :src="settings.ui_settings.logo_data" alt="Logo" class="welcome-logo-img">
+                    <h1 x-text="settings.ui_settings.logo_text || 'JustChat'"></h1>
+                </div>
+                <p class="welcome-subtitle" x-text="settings.ui_settings.subtitle || t('defaultSubtitle')"></p>
+                <div class="welcome-features">
+                    <div class="feature">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                        </svg>
+                        <span x-text="t('fastResponse')"></span>
+                    </div>
+                    <div class="feature">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                            <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <span x-text="t('docRAG')"></span>
+                    </div>
+                    <div class="feature">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        <span x-text="t('visionAI')"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 消息列表 -->
+            <div class="messages" x-ref="messagesContainer">
+                <template x-for="(msg, index) in messages" :key="index">
+                    <div class="message" :class="msg.role">
+                        <div class="message-avatar">
+                            <template x-if="msg.role === 'user'">
+                                <template x-if="settings.ui_settings.user_avatar">
+                                    <img :src="settings.ui_settings.user_avatar" alt="User">
+                                </template>
+                                <template x-if="!settings.ui_settings.user_avatar">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </template>
+                            </template>
+                            <template x-if="msg.role === 'assistant'">
+                                <template x-if="settings.ui_settings.assistant_avatar">
+                                    <img :src="settings.ui_settings.assistant_avatar" alt="AI">
+                                </template>
+                                <template x-if="!settings.ui_settings.assistant_avatar">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
+                                    </svg>
+                                </template>
+                            </template>
+                        </div>
+                        <div class="message-content" x-html="renderMarkdown(msg.content)"></div>
+                    </div>
+                </template>
+                
+                <!-- 正在输入指示器 -->
+                <div class="message assistant" x-show="isGenerating">
+                    <div class="message-avatar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
+                            <circle cx="7.5" cy="14.5" r="1"/>
+                            <circle cx="16.5" cy="14.5" r="1"/>
+                        </svg>
+                    </div>
+                    <div class="message-content">
+                        <div class="typing-indicator">
+                            <span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="input-area">
+                <div class="input-toolbar">
+                    <button class="btn-tool" :class="{ 'active': useRAG }" @click="useRAG = !useRAG" :title="t('knowledgeBase')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                        </svg>
+                        <span x-text="useRAG ? t('kbEnabled') : t('knowledgeBase')"></span>
+                    </button>
+                    <label class="btn-tool" :title="t('uploadImage')">
+                        <input type="file" @change="handleImageUpload($event)" accept="image/*" style="display: none;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                            <circle cx="8.5" cy="8.5" r="1.5"/>
+                            <polyline points="21 15 16 10 5 21"/>
+                        </svg>
+                        <span x-text="uploadedImage ? t('imageSelected') : t('image')"></span>
+                    </label>
+                </div>
+                
+                <!-- 已上传图片预览 -->
+                <div class="uploaded-image-preview" x-show="uploadedImage">
+                    <img :src="uploadedImage ? 'data:image/jpeg;base64,' + uploadedImageBase64 : ''" alt="Preview">
+                    <button class="btn-remove-image" @click="removeUploadedImage()">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="input-wrapper">
+                    <textarea 
+                        x-model="inputMessage" 
+                        @keydown.enter.prevent="if (!$event.shiftKey) sendMessage()"
+                        :placeholder="t('inputPlaceholder')"
+                        rows="1"
+                        x-ref="inputBox"
+                        @input="autoResize($refs.inputBox)"
+                    ></textarea>
+                    <button class="btn-send" @click="sendMessage()" :disabled="!inputMessage.trim() || isGenerating">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"/>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 设置弹窗 -->
+    <div class="modal-overlay" x-show="showSettings" x-cloak @click.self="showSettings = false" x-transition>
+        <div class="modal settings-modal">
+            <div class="modal-header">
+                <h2 x-text="t('settings')"></h2>
+                <button class="btn-icon" @click="showSettings = false">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-content">
+                <div class="settings-tabs">
+                    <button :class="{ 'active': settingsTab === 'models' }" @click="settingsTab = 'models'" x-text="t('modelConfig')"></button>
+                    <button :class="{ 'active': settingsTab === 'chat' }" @click="settingsTab = 'chat'" x-text="t('chatSettings')"></button>
+                    <button :class="{ 'active': settingsTab === 'rag' }" @click="settingsTab = 'rag'" x-text="t('ragSettings')"></button>
+                    <button :class="{ 'active': settingsTab === 'ui' }" @click="settingsTab = 'ui'" x-text="t('uiSettings')"></button>
+                    <button :class="{ 'active': settingsTab === 'docs' }" @click="settingsTab = 'docs'" x-text="t('knowledgeBase')"></button>
+                </div>
+
+                <!-- 模型配置 -->
+                <div class="settings-panel" x-show="settingsTab === 'models'">
+                    <template x-for="(model, index) in models" :key="model.id || index">
+                        <div class="model-card">
+                            <div class="model-header">
+                                <span class="model-type" x-text="getModelTypeName(model.type)"></span>
+                                <div class="model-status" :class="model.status || 'unknown'">
+                                    <span x-show="model.status === 'success'" class="status-dot success"></span>
+                                    <span x-show="model.status === 'error'" class="status-dot error"></span>
+                                    <span x-show="model.status === 'loading'" class="status-dot loading"></span>
+                                </div>
+                            </div>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label>API URL</label>
+                                    <input type="text" x-model="model.api_url" placeholder="http://localhost:11434/v1">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>API Key</label>
+                                    <input type="password" x-model="model.api_key" :placeholder="t('optional')">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Model ID</label>
+                                    <input type="text" x-model="model.model_id" placeholder="llama3.2 / nomic-embed-text / bge-reranker">
+                                </div>
+                                <div class="form-group" x-show="model.type === 'chat'">
+                                    <label x-text="t('contextLength')"></label>
+                                    <input type="number" x-model.number="model.context_length" placeholder="8192">
+                                </div>
+                                <div class="form-group" x-show="model.type === 'chat'">
+                                    <label x-text="t('maxOutput')"></label>
+                                    <input type="number" x-model.number="model.max_output" placeholder="4096">
+                                </div>
+                                <div class="form-group capabilities" x-show="model.type === 'chat'">
+                                    <label x-text="t('capabilities')"></label>
+                                    <div class="checkbox-group">
+                                        <label><input type="checkbox" x-model="model.capability.vision"> <span x-text="t('vision')"></span></label>
+                                        <label><input type="checkbox" x-model="model.capability.reasoning"> <span x-text="t('reasoning')"></span></label>
+                                        <label><input type="checkbox" x-model="model.capability.tools"> <span x-text="t('tools')"></span></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="model-footer">
+                                <button class="btn-save-model" @click="saveAndVerifyModel(model, index)" :disabled="model.status === 'loading'">
+                                    <svg x-show="model.status !== 'loading'" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                                        <polyline points="17 21 17 13 7 13 7 21"/>
+                                        <polyline points="7 3 7 8 15 8"/>
+                                    </svg>
+                                    <span x-show="model.status === 'loading'" class="spinner"></span>
+                                    <span x-text="model.status === 'loading' ? t('verifying') : t('saveAndVerify')"></span>
+                                </button>
+                                <span class="verify-result" x-show="model.verifyMessage" x-text="model.verifyMessage" :class="model.status"></span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- 聊天设置 -->
+                <div class="settings-panel" x-show="settingsTab === 'chat'">
+                    <div class="form-group">
+                        <label>Temperature: <span x-text="settings.chat_settings.temperature"></span></label>
+                        <input type="range" min="0" max="2" step="0.1" x-model.number="settings.chat_settings.temperature">
+                        <p class="hint" x-text="t('temperatureHint')"></p>
+                    </div>
+                    <div class="form-group">
+                        <label>Top P: <span x-text="settings.chat_settings.top_p"></span></label>
+                        <input type="range" min="0" max="1" step="0.05" x-model.number="settings.chat_settings.top_p">
+                        <p class="hint" x-text="t('topPHint')"></p>
+                    </div>
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <input type="checkbox" x-model="settings.chat_settings.stream">
+                            <span x-text="t('streamOutput')"></span>
+                        </label>
+                        <p class="hint" x-text="t('streamHint')"></p>
+                    </div>
+                </div>
+
+                <!-- RAG设置 -->
+                <div class="settings-panel" x-show="settingsTab === 'rag'">
+                    <div class="form-group">
+                        <label x-text="t('chunkSize')"></label>
+                        <input type="number" x-model.number="settings.rag_settings.chunk_size" placeholder="500">
+                        <p class="hint" x-text="t('chunkSizeHint')"></p>
+                    </div>
+                    <div class="form-group">
+                        <label x-text="t('chunkOverlap')"></label>
+                        <input type="number" x-model.number="settings.rag_settings.chunk_overlap" placeholder="50">
+                        <p class="hint" x-text="t('chunkOverlapHint')"></p>
+                    </div>
+                    <div class="form-group">
+                        <label>Top K</label>
+                        <input type="number" x-model.number="settings.rag_settings.top_k" placeholder="3">
+                        <p class="hint" x-text="t('topKHint')"></p>
+                    </div>
+                    <div class="form-group">
+                        <label x-text="t('scoreThreshold') + ': ' + settings.rag_settings.score_threshold"></label>
+                        <input type="range" min="0" max="1" step="0.05" x-model.number="settings.rag_settings.score_threshold">
+                        <p class="hint" x-text="t('scoreThresholdHint')"></p>
+                    </div>
+                </div>
+
+                <!-- 界面设置 -->
+                <div class="settings-panel" x-show="settingsTab === 'ui'">
+                    <div class="form-group">
+                        <label x-text="t('language')"></label>
+                        <div class="btn-group">
+                            <button :class="{ 'active': lang === 'en' }" @click="setLanguage('en')">English</button>
+                            <button :class="{ 'active': lang === 'zh' }" @click="setLanguage('zh')">中文</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label x-text="t('theme')"></label>
+                        <div class="btn-group">
+                            <button :class="{ 'active': settings.ui_settings.theme_mode === 'light' }" @click="settings.ui_settings.theme_mode = 'light'; applyTheme()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="5"/>
+                                    <line x1="12" y1="1" x2="12" y2="3"/>
+                                    <line x1="12" y1="21" x2="12" y2="23"/>
+                                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                                    <line x1="1" y1="12" x2="3" y2="12"/>
+                                    <line x1="21" y1="12" x2="23" y2="12"/>
+                                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                                </svg>
+                                <span x-text="t('light')"></span>
+                            </button>
+                            <button :class="{ 'active': settings.ui_settings.theme_mode === 'dark' }" @click="settings.ui_settings.theme_mode = 'dark'; applyTheme()">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                                </svg>
+                                <span x-text="t('dark')"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Logo</label>
+                        <div class="logo-upload-area">
+                            <img x-show="settings.ui_settings.logo_data" :src="settings.ui_settings.logo_data" alt="Logo" class="logo-preview">
+                            <label class="btn-upload">
+                                <input type="file" @change="handleLogoUpload($event)" accept="image/*" style="display: none;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                                <span x-text="t('uploadLogo')"></span>
+                            </label>
+                            <button class="btn-remove-logo" x-show="settings.ui_settings.logo_data" @click="settings.ui_settings.logo_data = ''">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M18 6L6 18M6 6l12 12"/>
+                                </svg>
+                            </button>
+                            <input type="text" x-model="settings.ui_settings.logo_text" placeholder="JustChat" style="flex:1; margin-left: 8px;">
+                        </div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label x-text="t('avatars')"></label>
+                        <div class="avatar-upload-row">
+                            <div class="avatar-upload-item">
+                                <div class="avatar-preview">
+                                    <img x-show="settings.ui_settings.user_avatar" :src="settings.ui_settings.user_avatar" alt="User">
+                                    <svg x-show="!settings.ui_settings.user_avatar" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                        <circle cx="12" cy="7" r="4"/>
+                                    </svg>
+                                </div>
+                                <label class="btn-upload">
+                                    <input type="file" @change="handleAvatarUpload($event, 'user')" accept="image/*" style="display: none;">
+                                    <span x-text="t('userAvatar')"></span>
+                                </label>
+                            </div>
+                            <div class="avatar-upload-item">
+                                <div class="avatar-preview" style="background: var(--text-primary); color: var(--bg-primary);">
+                                    <img x-show="settings.ui_settings.assistant_avatar" :src="settings.ui_settings.assistant_avatar" alt="AI">
+                                    <svg x-show="!settings.ui_settings.assistant_avatar" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h1a7 7 0 0 1 7 7h1a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1H2a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a7 7 0 0 1 7-7h1V5.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/>
+                                    </svg>
+                                </div>
+                                <label class="btn-upload">
+                                    <input type="file" @change="handleAvatarUpload($event, 'assistant')" accept="image/*" style="display: none;">
+                                    <span x-text="t('aiAvatar')"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label x-text="t('subtitle')"></label>
+                        <input type="text" x-model="settings.ui_settings.subtitle" :placeholder="t('defaultSubtitle')">
+                    </div>
+                </div>
+
+                <!-- 知识库 -->
+                <div class="settings-panel" x-show="settingsTab === 'docs'">
+                    <div class="form-group">
+                        <label class="btn-upload full-width" :class="{ 'disabled': uploadProgress.show }">
+                            <input type="file" @change="handleFileUpload($event)" accept=".txt,.md,.pdf,.doc,.docx" style="display: none;" :disabled="uploadProgress.show">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                <polyline points="14 2 14 8 20 8"/>
+                                <line x1="12" y1="18" x2="12" y2="12"/>
+                                <line x1="9" y1="15" x2="15" y2="15"/>
+                            </svg>
+                            <span x-text="t('uploadDocument')"></span>
+                        </label>
+                    </div>
+                    
+                    <!-- Upload Progress -->
+                    <div class="upload-progress" x-show="uploadProgress.show">
+                        <div class="progress-info">
+                            <span class="progress-filename" x-text="uploadProgress.filename"></span>
+                            <span class="progress-status">
+                                <template x-if="uploadProgress.status === 'uploading'">
+                                    <span>Uploading...</span>
+                                </template>
+                                <template x-if="uploadProgress.status === 'chunking'">
+                                    <span x-text="'Chunking (' + uploadProgress.total + ' chunks)...'"></span>
+                                </template>
+                                <template x-if="uploadProgress.status === 'embedding'">
+                                    <span x-text="'Embedding ' + uploadProgress.current + '/' + uploadProgress.total + ' (' + uploadProgress.progress + '%)'"></span>
+                                </template>
+                            </span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" :style="'width: ' + uploadProgress.progress + '%'"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="documents-list">
+                        <template x-for="doc in documents" :key="doc.id">
+                            <div class="document-item">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                </svg>
+                                <span x-text="doc.filename"></span>
+                                <button class="btn-delete-small" @click="deleteDocument(doc.id)" x-text="t('delete')"></button>
+                            </div>
+                        </template>
+                        <p x-show="documents.length === 0" class="empty-hint" x-text="t('noDocuments')"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div class="copyright-info">
+                    <span>© 2025 ChatRaw by massif-01, RMinte AI Technology Co., Ltd.</span>
+                    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener">CC BY-NC-SA 4.0</a>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-secondary" @click="showSettings = false" x-text="t('cancel')"></button>
+                    <button class="btn-primary" @click="saveAllSettings()" x-text="t('save')"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast提示 -->
+    <div class="toast" x-show="toast.show" x-text="toast.message" :class="toast.type" x-transition></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
