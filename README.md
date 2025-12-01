@@ -43,11 +43,19 @@ Existing open-source chat frontends are too heavy and complex. Many developers a
 docker run -d -p 51111:51111 -v chatraw_data:/app/data --name chatraw massif01/chatraw:latest
 ```
 
-**Option 2: Git Clone**
+**Option 2: Docker Compose**
 ```bash
 git clone https://github.com/massif-01/ChatRaw.git
 cd ChatRaw
 docker compose up -d
+```
+
+**Option 3: From Source**
+```bash
+git clone https://github.com/massif-01/ChatRaw.git
+cd ChatRaw/backend
+pip install -r requirements.txt
+python main.py
 ```
 
 **Visit http://localhost:51111**
@@ -79,11 +87,19 @@ docker compose up -d
 docker run -d -p 51111:51111 -v chatraw_data:/app/data --name chatraw massif01/chatraw:latest
 ```
 
-**方式二：克隆仓库**
+**方式二：Docker Compose**
 ```bash
 git clone https://github.com/massif-01/ChatRaw.git
 cd ChatRaw
 docker compose up -d
+```
+
+**方式三：源代码部署**
+```bash
+git clone https://github.com/massif-01/ChatRaw.git
+cd ChatRaw/backend
+pip install -r requirements.txt
+python main.py
 ```
 
 **访问 http://localhost:51111**
