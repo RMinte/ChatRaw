@@ -695,6 +695,142 @@ body {
     border-radius: 4px;
 }
 
+/* URL Input Popup */
+.url-input-popup {
+    position: absolute;
+    bottom: 44px;
+    left: 0;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    min-width: 320px;
+    box-shadow: var(--shadow-lg);
+    z-index: 100;
+    animation: fadeIn 0.15s ease-out;
+}
+
+.url-input-header {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.url-input-popup input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.url-input-popup input:focus {
+    border-color: var(--border-focus);
+}
+
+.url-input-popup input::placeholder {
+    color: var(--text-muted);
+}
+
+.url-input-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.url-input-actions .btn-cancel {
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.url-input-actions .btn-cancel:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.url-input-actions .btn-confirm {
+    padding: 8px 16px;
+    border: none;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.url-input-actions .btn-confirm:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.url-input-actions .btn-confirm:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Parsed URL Preview */
+.parsed-url-preview {
+    position: absolute;
+    bottom: 60px;
+    left: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    animation: fadeIn 0.2s;
+    max-width: 300px;
+}
+
+.parsed-url-preview svg {
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+
+.parsed-url-title {
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.btn-remove-url {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    border: none;
+    background: var(--error-color);
+    color: white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+    transition: var(--transition);
+}
+
+.btn-remove-url:hover {
+    opacity: 0.8;
+}
+
 /* --- New Settings Modal (Grok Style) --- */
 .modal-overlay {
     position: fixed;
@@ -1228,6 +1364,17 @@ input[type=range]::-webkit-slider-thumb:hover {
     
     .uploaded-image-preview {
         bottom: 52px;
+    }
+    
+    .url-input-popup {
+        min-width: calc(100vw - 48px);
+        left: -12px;
+        right: -12px;
+    }
+    
+    .parsed-url-preview {
+        bottom: 52px;
+        max-width: calc(100vw - 100px);
     }
     
     /* Settings Modal Mobile */

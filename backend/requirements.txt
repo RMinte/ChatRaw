@@ -3,5 +3,6 @@ uvicorn[standard]>=0.27.0
 aiohttp>=3.9.1
 pydantic>=2.5.3
 python-multipart>=0.0.6
+trafilatura>=1.6.0
 
 

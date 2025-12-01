@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://unpkg.com/highlight.js@11.9.0/styles/github-dark.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css?v=3.2">
+    <link rel="stylesheet" href="styles.css?v=3.3">
 </head>
 <body x-data="app()" x-init="init()" :data-theme="settings.ui_settings.theme_mode">
     <!-- Sidebar Overlay for Mobile -->
@@ -174,6 +174,16 @@
                         <img :src="uploadedImage ? 'data:image/jpeg;base64,' + uploadedImageBase64 : ''" alt="Preview">
                         <button class="btn-delete" @click="removeUploadedImage()" style="opacity:1; position:absolute; top:-10px; right:-10px; background:var(--error-color); color:white; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center;">×</button>
                     </div>
+                    
+                    <!-- Parsed URL Preview -->
+                    <div class="parsed-url-preview" x-show="parsedUrl" x-cloak>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                        </svg>
+                        <span class="parsed-url-title" x-text="parsedUrlTitle"></span>
+                        <button class="btn-remove-url" @click="removeParsedUrl()">×</button>
+                    </div>
 
                     <div class="input-wrapper">
                         <textarea 
@@ -203,6 +213,32 @@
                                     <polyline points="21 15 16 10 5 21"/>
                                 </svg>
                             </label>
+                            <button class="btn-tool" @click="toggleUrlInput()" :title="t('parseUrl')" :class="{ 'active': parsedUrl }">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                                </svg>
+                            </button>
+                            
+                            <!-- URL Input Popup -->
+                            <div class="url-input-popup" x-show="showUrlInput" x-cloak @click.outside="cancelUrlInput()">
+                                <div class="url-input-header" x-text="t('enterUrl')"></div>
+                                <input 
+                                    type="text" 
+                                    x-model="urlInputValue" 
+                                    :placeholder="t('urlPlaceholder')"
+                                    @keydown.enter="parseUrl()"
+                                    @keydown.escape="cancelUrlInput()"
+                                    :disabled="isParsingUrl"
+                                >
+                                <div class="url-input-actions">
+                                    <button class="btn-cancel" @click="cancelUrlInput()" x-text="t('cancel')"></button>
+                                    <button class="btn-confirm" @click="parseUrl()" :disabled="isParsingUrl || !urlInputValue.trim()">
+                                        <span x-show="!isParsingUrl" x-text="t('confirm')"></span>
+                                        <span x-show="isParsingUrl" x-text="t('parsing')"></span>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
 
                         <button class="btn-send" @click="sendMessage()" :disabled="!inputMessage.trim() || isGenerating">
@@ -492,6 +528,6 @@
     <!-- Toast -->
     <div class="toast" x-show="toast.show" x-text="toast.message" :class="toast.type" x-transition></div>
 
-    <script src="app.js?v=3.3"></script>
+    <script src="app.js?v=3.4"></script>
 </body>
 </html>

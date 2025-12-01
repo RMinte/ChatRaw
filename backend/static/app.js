@@ -17,6 +17,13 @@ const i18n = {
         uploadImage: 'Upload Image',
         image: 'Image',
         imageSelected: 'Image Selected',
+        parseUrl: 'Parse URL',
+        enterUrl: 'Enter URL',
+        parsing: 'Parsing...',
+        urlAttached: 'URL Attached',
+        parseFailed: 'Parse failed',
+        urlPlaceholder: 'https://example.com/article',
+        confirm: 'OK',
         inputPlaceholder: 'Type a message... (Enter to send, Shift+Enter for new line)',
         modelConfig: 'Models',
         chatSettings: 'Chat',
@@ -97,6 +104,13 @@ const i18n = {
         uploadImage: '上传图片',
         image: '图片',
         imageSelected: '已选择图片',
+        parseUrl: '解析网页',
+        enterUrl: '输入网址',
+        parsing: '解析中...',
+        urlAttached: '已附加网页',
+        parseFailed: '解析失败',
+        urlPlaceholder: 'https://example.com/article',
+        confirm: '确定',
         inputPlaceholder: '输入消息... (Enter 发送, Shift+Enter 换行)',
         modelConfig: '模型配置',
         modelConfigDesc: '管理您的AI模型连接和参数',
@@ -194,6 +208,13 @@ function app() {
         uploadedImage: null,
         uploadedImageBase64: '',
         uploadProgress: { show: false, filename: '', progress: 0, status: '', current: 0, total: 0 },
+        
+        // URL Parser state
+        showUrlInput: false,
+        urlInputValue: '',
+        isParsingUrl: false,
+        parsedUrl: null,  // { title, content, url }
+        parsedUrlTitle: '',
         
         // Data
         chats: [],
@@ -400,10 +421,13 @@ function app() {
                     chat_id: this.currentChatId,
                     message: message,
                     use_rag: this.useRAG,
-                    image_base64: this.uploadedImageBase64
+                    image_base64: this.uploadedImageBase64,
+                    web_content: this.parsedUrl ? this.parsedUrl.content : '',
+                    web_url: this.parsedUrl ? this.parsedUrl.url : ''
                 };
                 
                 this.removeUploadedImage();
+                this.removeParsedUrl();
                 
                 if (this.settings.chat_settings.stream) {
                     await this.handleStreamResponse(body);
@@ -649,6 +673,66 @@ function app() {
         removeUploadedImage() {
             this.uploadedImage = null;
             this.uploadedImageBase64 = '';
+        },
+        
+        // Toggle URL input popup
+        toggleUrlInput() {
+            this.showUrlInput = !this.showUrlInput;
+            if (this.showUrlInput) {
+                this.urlInputValue = '';
+                this.$nextTick(() => {
+                    const input = document.querySelector('.url-input-popup input');
+                    if (input) input.focus();
+                });
+            }
+        },
+        
+        // Parse URL
+        async parseUrl() {
+            const url = this.urlInputValue.trim();
+            if (!url) return;
+            
+            this.isParsingUrl = true;
+            
+            try {
+                const res = await fetch('/api/parse-url', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    this.parsedUrl = {
+                        title: data.title,
+                        content: data.content,
+                        url: data.url
+                    };
+                    this.parsedUrlTitle = data.title;
+                    this.showUrlInput = false;
+                    this.urlInputValue = '';
+                    this.showToast(this.t('urlAttached') + ': ' + data.title, 'success');
+                } else {
+                    this.showToast(this.t('parseFailed') + ': ' + data.error, 'error');
+                }
+            } catch (e) {
+                this.showToast(this.t('parseFailed') + ': ' + e.message, 'error');
+            } finally {
+                this.isParsingUrl = false;
+            }
+        },
+        
+        // Remove parsed URL
+        removeParsedUrl() {
+            this.parsedUrl = null;
+            this.parsedUrlTitle = '';
+        },
+        
+        // Cancel URL input
+        cancelUrlInput() {
+            this.showUrlInput = false;
+            this.urlInputValue = '';
         },
         
         // Delete document

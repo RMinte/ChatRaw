@@ -69,6 +69,8 @@ class ChatRequest(BaseModel):
     message: str = ""
     use_rag: Optional[bool] = False
     image_base64: Optional[str] = ""
+    web_content: Optional[str] = ""  # Parsed web page content
+    web_url: Optional[str] = ""  # Source URL for reference
     
     class Config:
         extra = "ignore"  # Ignore extra fields
@@ -410,7 +412,7 @@ class LLMService:
     def __init__(self, db: Database):
         self.db = db
     
-    async def chat_stream(self, chat_id: str, message: str, use_rag: bool = False, image_base64: str = "") -> AsyncGenerator[str, None]:
+    async def chat_stream(self, chat_id: str, message: str, use_rag: bool = False, image_base64: str = "", web_content: str = "", web_url: str = "") -> AsyncGenerator[str, None]:
         """Stream chat responses"""
         config = self.db.get_model_by_type("chat")
         if not config or not config.api_url or not config.model_id:
@@ -428,10 +430,17 @@ class LLMService:
         if use_rag:
             rag_context = await self.build_rag_context(message)
         
+        # Web content context
+        web_context = ""
+        if web_content:
+            web_context = f"以下是用户提供的网页内容作为参考 (来源: {web_url}):\n---\n{web_content}\n---\n\n"
+        
         # User message
         final_message = message
         if rag_context:
             final_message = f"{rag_context}User question: {message}"
+        if web_context:
+            final_message = f"{web_context}{final_message}"
         
         # Handle image
         if image_base64 and config.capability.vision:
@@ -513,7 +522,7 @@ class LLMService:
         except Exception as e:
             yield json.dumps({"error": str(e)})
     
-    async def chat_non_stream(self, chat_id: str, message: str, use_rag: bool = False, image_base64: str = "") -> str:
+    async def chat_non_stream(self, chat_id: str, message: str, use_rag: bool = False, image_base64: str = "", web_content: str = "", web_url: str = "") -> str:
         """Non-streaming chat"""
         config = self.db.get_model_by_type("chat")
         if not config or not config.api_url or not config.model_id:
@@ -528,9 +537,16 @@ class LLMService:
         if use_rag:
             rag_context = await self.build_rag_context(message)
         
+        # Web content context
+        web_context = ""
+        if web_content:
+            web_context = f"以下是用户提供的网页内容作为参考 (来源: {web_url}):\n---\n{web_content}\n---\n\n"
+        
         final_message = message
         if rag_context:
             final_message = f"{rag_context}User question: {message}"
+        if web_context:
+            final_message = f"{web_context}{final_message}"
         
         if image_base64 and config.capability.vision:
             messages.append({
@@ -830,6 +846,8 @@ async def chat(request: Request):
     message = body.get("message", "") or ""
     use_rag = body.get("use_rag", False) or False
     image_base64 = body.get("image_base64", "") or ""
+    web_content = body.get("web_content", "") or ""
+    web_url = body.get("web_url", "") or ""
     
     if not message:
         return JSONResponse({"error": "Message is required"}, status_code=400)
@@ -851,7 +869,7 @@ async def chat(request: Request):
             yield json.dumps({"chat_id": chat_id}) + "\n"
             
             # Stream content
-            async for chunk in llm_service.chat_stream(chat_id, message, use_rag, image_base64):
+            async for chunk in llm_service.chat_stream(chat_id, message, use_rag, image_base64, web_content, web_url):
                 yield chunk + "\n"
         
         return StreamingResponse(
@@ -864,7 +882,7 @@ async def chat(request: Request):
         )
     else:
         # Non-streaming response
-        content = await llm_service.chat_non_stream(chat_id, message, use_rag, image_base64)
+        content = await llm_service.chat_non_stream(chat_id, message, use_rag, image_base64, web_content, web_url)
         return {"chat_id": chat_id, "content": content}
 
 @app.get("/api/documents")
@@ -909,6 +927,93 @@ async def upload_image(file: UploadFile = File(...)):
     content = await file.read()
     b64 = base64.b64encode(content).decode("utf-8")
     return {"success": True, "filename": file.filename, "base64": b64}
+
+class ParseUrlRequest(BaseModel):
+    url: str
+
+@app.post("/api/parse-url")
+async def parse_url(request: ParseUrlRequest):
+    """Parse web page content from URL"""
+    import re
+    from urllib.parse import urlparse
+    
+    url = request.url.strip()
+    
+    # Validate URL format
+    if not url:
+        return JSONResponse({"success": False, "error": "URL is required"}, status_code=400)
+    
+    # Add https:// if no protocol specified
+    if not url.startswith(('http://', 'https://')):
+        url = 'https://' + url
+    
+    # Validate URL
+    try:
+        parsed = urlparse(url)
+        if not parsed.netloc:
+            return JSONResponse({"success": False, "error": "Invalid URL"}, status_code=400)
+    except:
+        return JSONResponse({"success": False, "error": "Invalid URL format"}, status_code=400)
+    
+    try:
+        # Fetch the web page
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers=headers, timeout=aiohttp.ClientTimeout(total=15), allow_redirects=True) as resp:
+                if resp.status != 200:
+                    return JSONResponse({"success": False, "error": f"Failed to fetch URL (HTTP {resp.status})"}, status_code=400)
+                
+                html = await resp.text()
+        
+        # Try to use trafilatura for content extraction
+        try:
+            import trafilatura
+            content = trafilatura.extract(html, include_comments=False, include_tables=True, no_fallback=False)
+            
+            if not content:
+                # Fallback: simple HTML tag stripping
+                content = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.DOTALL | re.IGNORECASE)
+                content = re.sub(r'<style[^>]*>.*?</style>', '', content, flags=re.DOTALL | re.IGNORECASE)
+                content = re.sub(r'<[^>]+>', ' ', content)
+                content = re.sub(r'\s+', ' ', content).strip()
+        except ImportError:
+            # trafilatura not installed, use simple extraction
+            content = re.sub(r'<script[^>]*>.*?</script>', '', html, flags=re.DOTALL | re.IGNORECASE)
+            content = re.sub(r'<style[^>]*>.*?</style>', '', content, flags=re.DOTALL | re.IGNORECASE)
+            content = re.sub(r'<[^>]+>', ' ', content)
+            content = re.sub(r'\s+', ' ', content).strip()
+        
+        if not content:
+            return JSONResponse({"success": False, "error": "Could not extract content from page"}, status_code=400)
+        
+        # Limit content length (max ~8000 chars to leave room for user message)
+        max_length = 8000
+        if len(content) > max_length:
+            content = content[:max_length] + "...\n\n[内容已截断]"
+        
+        # Extract title from HTML
+        title_match = re.search(r'<title[^>]*>([^<]+)</title>', html, re.IGNORECASE)
+        title = title_match.group(1).strip() if title_match else parsed.netloc
+        
+        return {
+            "success": True,
+            "title": title,
+            "content": content,
+            "url": url,
+            "length": len(content)
+        }
+        
+    except asyncio.TimeoutError:
+        return JSONResponse({"success": False, "error": "Request timeout - page took too long to load"}, status_code=400)
+    except aiohttp.ClientError as e:
+        return JSONResponse({"success": False, "error": f"Network error: {str(e)}"}, status_code=400)
+    except Exception as e:
+        return JSONResponse({"success": False, "error": f"Failed to parse URL: {str(e)}"}, status_code=500)
 
 # Static files - must be last
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
