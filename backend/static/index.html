@@ -135,13 +135,13 @@
             <div class="messages" x-ref="messagesContainer">
                 <template x-for="(msg, index) in messages" :key="index">
                     <div class="message" :class="msg.role">
-                        <div class="message-avatar">
+                        <div class="message-avatar" :class="msg.role">
                             <template x-if="msg.role === 'user'">
                                 <template x-if="settings.ui_settings.user_avatar">
                                     <img :src="settings.ui_settings.user_avatar" alt="User">
                                 </template>
                                 <template x-if="!settings.ui_settings.user_avatar">
-                                    <span>U</span>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                 </template>
                             </template>
                             <template x-if="msg.role === 'assistant'">
@@ -158,7 +158,14 @@
                 </template>
                 
                 <div class="message assistant" x-show="isGenerating">
-                    <div class="message-avatar"><span>AI</span></div>
+                    <div class="message-avatar assistant">
+                        <template x-if="settings.ui_settings.assistant_avatar">
+                            <img :src="settings.ui_settings.assistant_avatar" alt="AI">
+                        </template>
+                        <template x-if="!settings.ui_settings.assistant_avatar">
+                            <span>AI</span>
+                        </template>
+                    </div>
                     <div class="message-content">
                         <div class="typing-indicator">
                             <span></span><span></span>
@@ -452,28 +459,31 @@
                         <div class="form-group" style="margin-bottom: 40px;">
                             <label class="form-label" x-text="t('avatars')"></label>
                             
-                            <!-- User Avatar Row -->
-                            <div style="display:flex; align-items:center; gap:20px; margin-bottom: 16px;">
-                                <div class="avatar-preview" style="width:40px; height:40px; border-radius:50%; background:var(--bg-tertiary); overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                    <img x-show="settings.ui_settings.user_avatar" :src="settings.ui_settings.user_avatar" alt="User" style="width:100%; height:100%; object-fit:cover;">
-                                    <svg x-show="!settings.ui_settings.user_avatar" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <!-- Avatars Row -->
+                            <div style="display:flex; align-items:center; gap:24px; flex-wrap:wrap;">
+                                <!-- User Avatar -->
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <div class="avatar-preview" style="width:40px; height:40px; border-radius:50%; background:var(--bg-tertiary); overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                        <img x-show="settings.ui_settings.user_avatar" :src="settings.ui_settings.user_avatar" alt="User" style="width:100%; height:100%; object-fit:cover;">
+                                        <svg x-show="!settings.ui_settings.user_avatar" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                    </div>
+                                    <label class="btn-secondary" style="margin:0;">
+                                        <input type="file" @change="handleAvatarUpload($event, 'user')" accept="image/*" style="display: none;">
+                                        <span x-text="t('uploadUserAvatar')"></span>
+                                    </label>
                                 </div>
-                                <label class="btn-secondary" style="margin:0;">
-                                    <input type="file" @change="handleAvatarUpload($event, 'user')" accept="image/*" style="display: none;">
-                                    <span x-text="t('uploadUserAvatar')"></span>
-                                </label>
-                            </div>
 
-                            <!-- AI Avatar Row -->
-                            <div style="display:flex; align-items:center; gap:20px;">
-                                <div class="avatar-preview" style="width:40px; height:40px; border-radius:50%; background:var(--text-primary); color:var(--bg-primary); overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                    <img x-show="settings.ui_settings.assistant_avatar" :src="settings.ui_settings.assistant_avatar" alt="AI" style="width:100%; height:100%; object-fit:cover;">
-                                    <span x-show="!settings.ui_settings.assistant_avatar" style="font-weight:bold; font-size:14px;">AI</span>
+                                <!-- AI Avatar -->
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <div class="avatar-preview" style="width:40px; height:40px; border-radius:50%; background:var(--text-primary); color:var(--bg-primary); overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                                        <img x-show="settings.ui_settings.assistant_avatar" :src="settings.ui_settings.assistant_avatar" alt="AI" style="width:100%; height:100%; object-fit:cover;">
+                                        <span x-show="!settings.ui_settings.assistant_avatar" style="font-weight:bold; font-size:14px;">AI</span>
+                                    </div>
+                                    <label class="btn-secondary" style="margin:0;">
+                                        <input type="file" @change="handleAvatarUpload($event, 'assistant')" accept="image/*" style="display: none;">
+                                        <span x-text="t('uploadAIAvatar')"></span>
+                                    </label>
                                 </div>
-                                <label class="btn-secondary" style="margin:0;">
-                                    <input type="file" @change="handleAvatarUpload($event, 'assistant')" accept="image/*" style="display: none;">
-                                    <span x-text="t('uploadAIAvatar')"></span>
-                                </label>
                             </div>
                         </div>
                     </div>
@@ -528,6 +538,6 @@
     <!-- Toast -->
     <div class="toast" x-show="toast.show" x-text="toast.message" :class="toast.type" x-transition></div>
 
-    <script src="app.js?v=3.4"></script>
+    <script src="app.js?v=3.5"></script>
 </body>
 </html>
