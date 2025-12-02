@@ -136,22 +136,12 @@
                 <template x-for="(msg, index) in messages" :key="index">
                     <div class="message" :class="msg.role">
                         <div class="message-avatar" :class="msg.role">
-                            <template x-if="msg.role === 'user'">
-                                <template x-if="settings.ui_settings.user_avatar">
-                                    <img :src="settings.ui_settings.user_avatar" alt="User">
-                                </template>
-                                <template x-if="!settings.ui_settings.user_avatar">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                                </template>
-                            </template>
-                            <template x-if="msg.role === 'assistant'">
-                                <template x-if="settings.ui_settings.assistant_avatar">
-                                    <img :src="settings.ui_settings.assistant_avatar" alt="AI">
-                                </template>
-                                <template x-if="!settings.ui_settings.assistant_avatar">
-                                    <span>AI</span>
-                                </template>
-                            </template>
+                            <!-- User avatar -->
+                            <img x-show="msg.role === 'user' && settings.ui_settings.user_avatar" :src="settings.ui_settings.user_avatar" alt="User" style="width:100%; height:100%; object-fit:cover;">
+                            <svg x-show="msg.role === 'user' && !settings.ui_settings.user_avatar" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            <!-- AI avatar -->
+                            <img x-show="msg.role === 'assistant' && settings.ui_settings.assistant_avatar" :src="settings.ui_settings.assistant_avatar" alt="AI" style="width:100%; height:100%; object-fit:cover;">
+                            <span x-show="msg.role === 'assistant' && !settings.ui_settings.assistant_avatar">AI</span>
                         </div>
                         <div class="message-content" x-html="renderMarkdown(msg.content)"></div>
                     </div>
@@ -159,12 +149,8 @@
                 
                 <div class="message assistant" x-show="isGenerating">
                     <div class="message-avatar assistant">
-                        <template x-if="settings.ui_settings.assistant_avatar">
-                            <img :src="settings.ui_settings.assistant_avatar" alt="AI">
-                        </template>
-                        <template x-if="!settings.ui_settings.assistant_avatar">
-                            <span>AI</span>
-                        </template>
+                        <img x-show="settings.ui_settings.assistant_avatar" :src="settings.ui_settings.assistant_avatar" alt="AI" style="width:100%; height:100%; object-fit:cover;">
+                        <span x-show="!settings.ui_settings.assistant_avatar">AI</span>
                     </div>
                     <div class="message-content">
                         <div class="typing-indicator">
@@ -538,6 +524,6 @@
     <!-- Toast -->
     <div class="toast" x-show="toast.show" x-text="toast.message" :class="toast.type" x-transition></div>
 
-    <script src="app.js?v=3.5"></script>
+    <script src="app.js?v=3.6"></script>
 </body>
 </html>
