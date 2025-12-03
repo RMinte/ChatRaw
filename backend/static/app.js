@@ -730,6 +730,16 @@ function app() {
                     body: formData
                 });
                 
+                if (!res.ok) {
+                    const text = await res.text();
+                    try {
+                        const data = JSON.parse(text);
+                        throw new Error(data.error || `HTTP ${res.status}`);
+                    } catch {
+                        throw new Error(`HTTP ${res.status}: ${text.substring(0, 100)}`);
+                    }
+                }
+                
                 const data = await res.json();
                 
                 if (data.success) {
@@ -739,10 +749,11 @@ function app() {
                     };
                     this.showToast(this.t('documentAttached') + ': ' + data.filename, 'success');
                 } else {
-                    this.showToast(this.t('uploadFailed') + ': ' + data.error, 'error');
+                    this.showToast(this.t('uploadFailed') + ': ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (e) {
-                this.showToast(this.t('uploadFailed') + ': ' + e.message, 'error');
+                console.error('Document upload error:', e);
+                this.showToast(this.t('uploadFailed') + ': ' + (e.message || 'Unknown error'), 'error');
             } finally {
                 this.isUploadingDocument = false;
             }

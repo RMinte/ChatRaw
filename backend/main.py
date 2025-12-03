@@ -1191,27 +1191,32 @@ async def upload_image(file: UploadFile = File(...)):
 @app.post("/api/upload/document")
 async def upload_document_for_chat(file: UploadFile = File(...)):
     """Parse a document and return its content for chat attachment"""
-    content = await file.read()
-    
     try:
-        text = parse_document_content(file.filename, content)
-    except ValueError as e:
-        return JSONResponse({"success": False, "error": str(e)}, status_code=400)
-    
-    if not text.strip():
-        return JSONResponse({"success": False, "error": "No text content found in document"}, status_code=400)
-    
-    # Limit content length for chat context (max ~8000 chars)
-    max_length = 8000
-    if len(text) > max_length:
-        text = text[:max_length] + "...\n\n[内容已截断]"
-    
-    return {
-        "success": True,
-        "filename": file.filename,
-        "content": text,
-        "length": len(text)
-    }
+        content = await file.read()
+        
+        try:
+            text = parse_document_content(file.filename, content)
+        except ValueError as e:
+            return JSONResponse({"success": False, "error": str(e)}, status_code=400)
+        except Exception as e:
+            return JSONResponse({"success": False, "error": f"Parse error: {str(e)}"}, status_code=500)
+        
+        if not text.strip():
+            return JSONResponse({"success": False, "error": "No text content found in document"}, status_code=400)
+        
+        # Limit content length for chat context (max ~8000 chars)
+        max_length = 8000
+        if len(text) > max_length:
+            text = text[:max_length] + "...\n\n[内容已截断]"
+        
+        return {
+            "success": True,
+            "filename": file.filename,
+            "content": text,
+            "length": len(text)
+        }
+    except Exception as e:
+        return JSONResponse({"success": False, "error": f"Upload error: {str(e)}"}, status_code=500)
 
 class ParseUrlRequest(BaseModel):
     url: str
