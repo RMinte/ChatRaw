@@ -673,6 +673,7 @@ class RAGService:
         self.llm = llm
     
     def chunk_document(self, content: str, chunk_size: int = 500, overlap: int = 50) -> List[str]:
+        """Split document into chunks, ensuring each chunk <= chunk_size"""
         paragraphs = content.split("\n\n")
         chunks = []
         current = ""
@@ -682,9 +683,20 @@ class RAGService:
             if not para:
                 continue
             
+            # If paragraph itself is longer than chunk_size, force split it
+            if len(para) > chunk_size:
+                # First, save current buffer if not empty
+                if current.strip():
+                    chunks.append(current.strip())
+                    current = ""
+                # Force split the long paragraph
+                for i in range(0, len(para), chunk_size - overlap):
+                    chunks.append(para[i:i + chunk_size])
+                continue
+            
             if len(current) + len(para) > chunk_size:
-                if current:
-                    chunks.append(current)
+                if current.strip():
+                    chunks.append(current.strip())
                     if len(current) > overlap:
                         current = current[-overlap:] + " "
                     else:
@@ -695,6 +707,7 @@ class RAGService:
         if current.strip():
             chunks.append(current.strip())
         
+        # Fallback: if still no chunks, force split entire content
         if not chunks and content:
             for i in range(0, len(content), chunk_size - overlap):
                 chunks.append(content[i:i + chunk_size])
