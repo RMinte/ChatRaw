@@ -627,6 +627,43 @@ class LLMService:
             print(f"[Embedding] Exception: {e}")
             return []
     
+    async def rerank(self, query: str, documents: List[str]) -> List[dict]:
+        """Rerank documents using rerank model, returns list of {index, score}"""
+        config = self.db.get_model_by_type("rerank")
+        if not config or not config.api_url or not config.model_id:
+            print("[Rerank] No rerank model configured, skipping rerank")
+            return []
+        
+        url = config.api_url.rstrip("/") + "/rerank"
+        headers = {"Content-Type": "application/json"}
+        if config.api_key:
+            headers["Authorization"] = f"Bearer {config.api_key}"
+        
+        payload = {
+            "model": config.model_id,
+            "query": query,
+            "documents": documents,
+            "return_documents": False
+        }
+        
+        try:
+            print(f"[Rerank] Calling rerank API with {len(documents)} documents")
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=payload, headers=headers, timeout=aiohttp.ClientTimeout(total=60)) as resp:
+                    if resp.status != 200:
+                        error_text = await resp.text()
+                        print(f"[Rerank] API error ({resp.status}): {error_text[:200]}")
+                        return []
+                    
+                    data = await resp.json()
+                    # Handle different response formats
+                    results = data.get("results") or data.get("data") or []
+                    print(f"[Rerank] Got {len(results)} reranked results")
+                    return results
+        except Exception as e:
+            print(f"[Rerank] Exception: {e}")
+            return []
+    
     async def build_rag_context(self, query: str) -> tuple:
         """Build RAG context from documents, returns (context_string, references_list)"""
         settings = self.db.get_settings()
@@ -639,17 +676,53 @@ class LLMService:
         if not chunks:
             return "", []
         
-        # Calculate similarities
-        results = []
+        # Calculate similarities (first stage: embedding retrieval)
+        candidates = []
         for chunk in chunks:
             if not chunk["embedding"]:
                 continue
             score = self.cosine_similarity(query_embedding, chunk["embedding"])
             if score >= settings.rag_settings.score_threshold:
-                results.append({"content": chunk["content"], "score": round(score, 2)})
+                candidates.append({"content": chunk["content"], "score": round(score, 2)})
         
-        results.sort(key=lambda x: x["score"], reverse=True)
-        results = results[:settings.rag_settings.top_k]
+        candidates.sort(key=lambda x: x["score"], reverse=True)
+        
+        # Get more candidates for reranking (2x top_k or at least 10)
+        rerank_pool_size = max(settings.rag_settings.top_k * 2, 10)
+        candidates = candidates[:rerank_pool_size]
+        
+        if not candidates:
+            return "", []
+        
+        # Second stage: Rerank using rerank model
+        rerank_config = self.db.get_model_by_type("rerank")
+        if rerank_config and rerank_config.api_url and rerank_config.model_id:
+            documents = [c["content"] for c in candidates]
+            rerank_results = await self.rerank(query, documents)
+            
+            if rerank_results:
+                # Rebuild results using rerank scores
+                results = []
+                for r in rerank_results:
+                    idx = r.get("index", 0)
+                    rerank_score = r.get("relevance_score") or r.get("score", 0)
+                    if idx < len(candidates):
+                        results.append({
+                            "content": candidates[idx]["content"],
+                            "score": round(rerank_score, 2)
+                        })
+                
+                results.sort(key=lambda x: x["score"], reverse=True)
+                results = results[:settings.rag_settings.top_k]
+                print(f"[RAG] Using reranked results, top score: {results[0]['score'] if results else 'N/A'}")
+            else:
+                # Fallback to embedding scores if rerank failed
+                results = candidates[:settings.rag_settings.top_k]
+                print("[RAG] Rerank failed, using embedding scores")
+        else:
+            # No rerank model, use embedding scores directly
+            results = candidates[:settings.rag_settings.top_k]
+            print("[RAG] No rerank model configured, using embedding scores")
         
         if not results:
             return "", []
