@@ -603,6 +603,10 @@ body {
     transition: var(--transition);
     z-index: 10;
     position: relative;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
 }
 
 .rag-toggle:hover {
@@ -615,12 +619,18 @@ body {
 }
 
 .rag-slider {
+    display: block;
     width: 28px;
     height: 14px;
+    min-width: 28px;
+    min-height: 14px;
     background: var(--bg-tertiary);
     border-radius: 7px;
     position: relative;
     transition: background 0.2s ease;
+    flex-shrink: 0;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .rag-toggle.active .rag-slider {
@@ -628,14 +638,19 @@ body {
 }
 
 .rag-slider-handle {
+    display: block;
     position: absolute;
     top: 2px;
     left: 2px;
     width: 10px;
     height: 10px;
+    min-width: 10px;
+    min-height: 10px;
     background: var(--text-muted);
     border-radius: 50%;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .rag-toggle.active .rag-slider-handle {
@@ -655,6 +670,10 @@ body {
     transition: var(--transition);
     z-index: 10;
     position: relative;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
 }
 
 .thinking-toggle:hover {
@@ -667,12 +686,18 @@ body {
 }
 
 .thinking-slider {
+    display: block;
     width: 28px;
     height: 14px;
+    min-width: 28px;
+    min-height: 14px;
     background: var(--bg-tertiary);
     border-radius: 7px;
     position: relative;
     transition: background 0.2s ease;
+    flex-shrink: 0;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .thinking-toggle.active .thinking-slider {
@@ -680,14 +705,19 @@ body {
 }
 
 .thinking-slider-handle {
+    display: block;
     position: absolute;
     top: 2px;
     left: 2px;
     width: 10px;
     height: 10px;
+    min-width: 10px;
+    min-height: 10px;
     background: var(--text-muted);
     border-radius: 50%;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
 }
 
 .thinking-toggle.active .thinking-slider-handle {
@@ -1742,6 +1772,51 @@ input[type=range]::-webkit-slider-thumb:hover {
 
 .sidebar-footer {
     padding-bottom: max(20px, env(safe-area-inset-bottom) + 20px);
+}
+
+/* Tablet optimization (iPad, etc.) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .input-container-inner {
+        max-width: 100%;
+        padding: 0 12px;
+    }
+    
+    .input-toolbar {
+        gap: 4px;
+    }
+    
+    /* Ensure touch-friendly size for toggles */
+    .thinking-toggle,
+    .rag-toggle {
+        min-height: 44px;
+        padding: 8px 6px;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    }
+    
+    .thinking-slider,
+    .rag-slider {
+        display: block !important;
+        width: 28px;
+        height: 14px;
+        min-width: 28px;
+        min-height: 14px;
+        -webkit-transform: translateZ(0);
+    }
+    
+    .thinking-slider-handle,
+    .rag-slider-handle {
+        display: block !important;
+        width: 10px;
+        height: 10px;
+        min-width: 10px;
+        min-height: 10px;
+        -webkit-transform: translateZ(0);
+    }
+    
+    .btn-tool {
+        min-width: 44px;
+        min-height: 44px;
+    }
 }
 
 /* Extra small screens (iPhone SE, etc.) */

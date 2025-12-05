@@ -30,8 +30,9 @@ Existing open-source chat frontends are too heavy and complex. Many developers a
 - 🔌 **Plug & Play** - Any OpenAI-compatible API (Ollama, vLLM, LocalAI, LM Studio, etc.)
 - 📄 **Drag & Drop RAG** - Upload documents (PDF, DOCX, TXT, MD) for instant Q&A
 - 🔗 **URL Parser** - Parse web pages and use content as AI context
-- 🖼️ **Vision AI** - Multimodal image understanding
+- 🖼️ **Vision AI** - Multimodal image understanding with auto-compression (WebP, ~2MB)
 - 🧠 **Thinking Mode** - Enable deep reasoning for models (DeepSeek-R1, Qwen, o1, etc.) with collapsible thinking process
+- 📱 **Responsive Design** - Optimized for desktop, tablet (iPad), and mobile devices
 - 💬 **System Prompt** - Customizable system prompt for AI behavior control
 - 🌍 **i18n** - English & Chinese with one-click switch
 - 🔒 **Zero Registration** - Settings auto-saved locally
@@ -168,8 +169,9 @@ The input toolbar provides quick access to powerful features:
 - 🔌 **即插即用** - 支持任意 OpenAI 兼容 API（Ollama、vLLM、LocalAI、LM Studio 等）
 - 📄 **拖拽 RAG** - 支持 PDF、DOCX、TXT、MD 文档上传问答
 - 🔗 **网页解析** - 解析网页内容作为 AI 上下文辅助回答
-- 🖼️ **视觉理解** - 支持多模态模型图片理解
+- 🖼️ **视觉理解** - 支持多模态模型图片理解，自动压缩转 WebP（约2MB）
 - 🧠 **思考模式** - 启用模型深度推理（DeepSeek-R1、Qwen、o1等），可折叠显示思考过程
+- 📱 **响应式设计** - 完美适配桌面、平板（iPad）和移动设备
 - 💬 **系统提示词** - 可配置系统提示词，控制 AI 行为
 - 🌍 **多语言** - 中英文一键切换
 - 🔒 **零注册** - 无需登录，设置自动保存到本地

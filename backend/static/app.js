@@ -722,15 +722,94 @@ function app() {
             event.target.value = '';
         },
         
+        // Compress image using Canvas API, target ~2MB, convert to WebP
+        async compressImage(file, targetSizeMB = 2) {
+            const targetSize = targetSizeMB * 1024 * 1024;
+            
+            // If already small enough and is a web-friendly format, just return
+            if (file.size <= targetSize && file.type === 'image/webp') {
+                return file;
+            }
+            
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                
+                img.onload = () => {
+                    URL.revokeObjectURL(url);
+                    
+                    let { width, height } = img;
+                    const maxDimension = 4096; // Max dimension to keep quality reasonable
+                    
+                    // Scale down if too large
+                    if (width > maxDimension || height > maxDimension) {
+                        const ratio = Math.min(maxDimension / width, maxDimension / height);
+                        width = Math.round(width * ratio);
+                        height = Math.round(height * ratio);
+                    }
+                    
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Try different quality levels to hit target size
+                    const tryCompress = (quality) => {
+                        canvas.toBlob((blob) => {
+                            if (!blob) {
+                                reject(new Error('Compression failed'));
+                                return;
+                            }
+                            
+                            // If size is acceptable or quality is already low, return
+                            if (blob.size <= targetSize || quality <= 0.5) {
+                                // If still too big at low quality, reduce dimensions
+                                if (blob.size > targetSize && width > 1024) {
+                                    const scale = 0.7;
+                                    canvas.width = Math.round(width * scale);
+                                    canvas.height = Math.round(height * scale);
+                                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                    canvas.toBlob((finalBlob) => {
+                                        const newName = file.name.replace(/\.[^.]+$/, '.webp');
+                                        resolve(new File([finalBlob], newName, { type: 'image/webp' }));
+                                    }, 'image/webp', 0.6);
+                                } else {
+                                    const newName = file.name.replace(/\.[^.]+$/, '.webp');
+                                    resolve(new File([finalBlob], newName, { type: 'image/webp' }));
+                                }
+                            } else {
+                                // Try lower quality
+                                tryCompress(quality - 0.1);
+                            }
+                        }, 'image/webp', quality);
+                    };
+                    
+                    // Start with high quality
+                    tryCompress(0.85);
+                };
+                
+                img.onerror = () => {
+                    URL.revokeObjectURL(url);
+                    reject(new Error('Failed to load image'));
+                };
+                
+                img.src = url;
+            });
+        },
+        
         // Handle image upload
         async handleImageUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
             
-            const formData = new FormData();
-            formData.append('file', file);
-            
             try {
+                // Compress image before upload
+                const compressedFile = await this.compressImage(file);
+                
+                const formData = new FormData();
+                formData.append('file', compressedFile);
+                
                 const res = await fetch('/api/upload/image', {
                     method: 'POST',
                     body: formData
@@ -738,7 +817,7 @@ function app() {
                 
                 if (res.ok) {
                     const data = await res.json();
-                    this.uploadedImage = file.name;
+                    this.uploadedImage = file.name; // Keep original name for display
                     this.uploadedImageBase64 = data.base64;
                 } else {
                     const error = await res.json();
