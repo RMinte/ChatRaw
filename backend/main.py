@@ -10,17 +10,85 @@ import asyncio
 import aiohttp
 import io
 import struct
+import logging
 from datetime import datetime
 from typing import Optional, List, AsyncGenerator
 from contextlib import asynccontextmanager
+
+# ============ Structured Logging Setup ============
+
+class JSONFormatter(logging.Formatter):
+    """JSON formatter for structured logging"""
+    def format(self, record):
+        log_entry = {
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        # Add extra fields if present
+        if hasattr(record, "request_id"):
+            log_entry["request_id"] = record.request_id
+        if hasattr(record, "duration_ms"):
+            log_entry["duration_ms"] = record.duration_ms
+        if hasattr(record, "endpoint"):
+            log_entry["endpoint"] = record.endpoint
+        if hasattr(record, "method"):
+            log_entry["method"] = record.method
+        if hasattr(record, "status_code"):
+            log_entry["status_code"] = record.status_code
+        if hasattr(record, "client_ip"):
+            log_entry["client_ip"] = record.client_ip
+        if hasattr(record, "extra_data"):
+            log_entry.update(record.extra_data)
+        if record.exc_info:
+            log_entry["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_entry)
+
+def setup_logging():
+    """Configure structured logging"""
+    log_level = os.environ.get("LOG_LEVEL", "INFO").upper()
+    log_format = os.environ.get("LOG_FORMAT", "json")  # "json" or "text"
+    
+    # Create logger
+    logger = logging.getLogger("chatraw")
+    logger.setLevel(getattr(logging, log_level, logging.INFO))
+    
+    # Clear existing handlers
+    logger.handlers.clear()
+    
+    # Create handler
+    handler = logging.StreamHandler()
+    
+    if log_format == "json":
+        handler.setFormatter(JSONFormatter())
+    else:
+        handler.setFormatter(logging.Formatter(
+            "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s"
+        ))
+    
+    logger.addHandler(handler)
+    
+    # Also configure uvicorn access logs
+    uvicorn_logger = logging.getLogger("uvicorn.access")
+    uvicorn_logger.handlers.clear()
+    uvicorn_logger.addHandler(handler)
+    
+    return logger
+
+# Initialize logger
+logger = setup_logging()
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Request
 from fastapi.responses import StreamingResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 import sqlite3
 import math
+from collections import defaultdict
+import time as time_module
 
 # Document parsing
 try:
@@ -232,7 +300,7 @@ class Database:
             try:
                 data = row["embedding"]
                 if isinstance(data, str) and data.startswith('['):
-                    print("[DB] Migrating embeddings from JSON to binary format...")
+                    logger.info("Migrating embeddings from JSON to binary format")
                     cursor.execute("SELECT id, embedding FROM document_chunks WHERE embedding IS NOT NULL")
                     rows = cursor.fetchall()
                     for r in rows:
@@ -244,7 +312,7 @@ class Database:
                             except:
                                 pass
                     conn.commit()
-                    print(f"[DB] Migrated {len(rows)} embeddings to binary format")
+                    logger.info(f"Migrated {len(rows)} embeddings to binary format")
             except:
                 pass
     
@@ -740,39 +808,57 @@ class LLMService:
             return {"content": content, "thinking": thinking, "references": rag_references}
     
     async def get_embedding(self, text: str) -> List[float]:
-        """Get embedding for text"""
+        """Get embedding for single text"""
+        results = await self.get_embeddings_batch([text])
+        return results[0] if results else []
+    
+    async def get_embeddings_batch(self, texts: List[str], batch_size: int = 10) -> List[List[float]]:
+        """Get embeddings for multiple texts in batches (reduces API calls)"""
         config = self.db.get_model_by_type("embedding")
         if not config or not config.api_url or not config.model_id:
-            print("[Embedding] No embedding model configured")
-            return []
+            logger.warning("No embedding model configured")
+            return [[] for _ in texts]
         
         url = config.api_url.rstrip("/") + "/embeddings"
         headers = {"Content-Type": "application/json"}
         if config.api_key:
             headers["Authorization"] = f"Bearer {config.api_key}"
         
-        payload = {"model": config.model_id, "input": text}
+        all_embeddings = []
+        session = await get_http_session()
         
-        try:
-            session = await get_http_session()
-            async with session.post(url, json=payload, headers=headers) as resp:
-                if resp.status != 200:
-                    error_text = await resp.text()
-                    print(f"[Embedding] API error ({resp.status}): {error_text[:200]}")
-                    return []
-                data = await resp.json()
-                embedding = data["data"][0]["embedding"]
-                print(f"[Embedding] Got embedding with {len(embedding)} dimensions")
-                return embedding
-        except Exception as e:
-            print(f"[Embedding] Exception: {e}")
-            return []
+        # Process in batches
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i + batch_size]
+            payload = {"model": config.model_id, "input": batch}
+            
+            try:
+                async with session.post(url, json=payload, headers=headers) as resp:
+                    if resp.status != 200:
+                        error_text = await resp.text()
+                        logger.error(f"Embedding API error ({resp.status}): {error_text[:200]}")
+                        # Return empty embeddings for this batch
+                        all_embeddings.extend([[] for _ in batch])
+                        continue
+                    
+                    data = await resp.json()
+                    # Sort by index to ensure correct order (some APIs return unordered)
+                    sorted_data = sorted(data["data"], key=lambda x: x.get("index", 0))
+                    batch_embeddings = [item["embedding"] for item in sorted_data]
+                    all_embeddings.extend(batch_embeddings)
+                    logger.debug(f"Got {len(batch_embeddings)} embeddings (batch {i//batch_size + 1})")
+                    
+            except Exception as e:
+                logger.error(f"Embedding batch exception: {e}")
+                all_embeddings.extend([[] for _ in batch])
+        
+        return all_embeddings
     
     async def rerank(self, query: str, documents: List[str]) -> List[dict]:
         """Rerank documents using rerank model, returns list of {index, score}"""
         config = self.db.get_model_by_type("rerank")
         if not config or not config.api_url or not config.model_id:
-            print("[Rerank] No rerank model configured, skipping rerank")
+            logger.debug("No rerank model configured, skipping rerank")
             return []
         
         url = config.api_url.rstrip("/") + "/rerank"
@@ -788,21 +874,21 @@ class LLMService:
         }
         
         try:
-            print(f"[Rerank] Calling rerank API with {len(documents)} documents")
+            logger.debug(f"Calling rerank API with {len(documents)} documents")
             session = await get_http_session()
             async with session.post(url, json=payload, headers=headers) as resp:
                 if resp.status != 200:
                     error_text = await resp.text()
-                    print(f"[Rerank] API error ({resp.status}): {error_text[:200]}")
+                    logger.error(f"Rerank API error ({resp.status}): {error_text[:200]}")
                     return []
                 
                 data = await resp.json()
                 # Handle different response formats
                 results = data.get("results") or data.get("data") or []
-                print(f"[Rerank] Got {len(results)} reranked results")
+                logger.debug(f"Got {len(results)} reranked results")
                 return results
         except Exception as e:
-            print(f"[Rerank] Exception: {e}")
+            logger.error(f"Rerank exception: {e}")
             return []
     
     async def build_rag_context(self, query: str) -> tuple:
@@ -864,15 +950,15 @@ class LLMService:
                 
                 results.sort(key=lambda x: x["score"], reverse=True)
                 results = results[:settings.rag_settings.top_k]
-                print(f"[RAG] Using reranked results, top score: {results[0]['score'] if results else 'N/A'}")
+                logger.info(f"RAG using reranked results, top score: {results[0]['score'] if results else 'N/A'}")
             else:
                 # Fallback to embedding scores if rerank failed
                 results = candidates[:settings.rag_settings.top_k]
-                print("[RAG] Rerank failed, using embedding scores")
+                logger.warning("RAG rerank failed, using embedding scores")
         else:
             # No rerank model, use embedding scores directly
             results = candidates[:settings.rag_settings.top_k]
-            print("[RAG] No rerank model configured, using embedding scores")
+            logger.debug("RAG using embedding scores (no rerank model)")
         
         if not results:
             return "", []
@@ -961,6 +1047,72 @@ class RAGService:
 DATA_DIR = os.environ.get("DATA_DIR", "./data")
 os.makedirs(DATA_DIR, exist_ok=True)
 
+# CORS configuration from environment
+CORS_ORIGINS = os.environ.get("CORS_ORIGINS", "*")  # Comma-separated origins or "*" for all
+
+# Rate limiting configuration
+RATE_LIMIT_ENABLED = os.environ.get("RATE_LIMIT_ENABLED", "true").lower() == "true"
+RATE_LIMIT_REQUESTS = int(os.environ.get("RATE_LIMIT_REQUESTS", "60"))  # requests per window
+RATE_LIMIT_WINDOW = int(os.environ.get("RATE_LIMIT_WINDOW", "60"))  # window in seconds
+
+# File upload limits (in bytes)
+MAX_UPLOAD_SIZE = int(os.environ.get("MAX_UPLOAD_SIZE", str(50 * 1024 * 1024)))  # 50MB default
+MAX_IMAGE_SIZE = int(os.environ.get("MAX_IMAGE_SIZE", str(10 * 1024 * 1024)))  # 10MB default
+
+# ============ Rate Limiting Middleware ============
+
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    """Simple in-memory rate limiting middleware using sliding window"""
+    
+    def __init__(self, app, requests_per_window: int = 60, window_seconds: int = 60):
+        super().__init__(app)
+        self.requests_per_window = requests_per_window
+        self.window_seconds = window_seconds
+        self.request_counts = defaultdict(list)  # ip -> list of timestamps
+    
+    def _get_client_ip(self, request: Request) -> str:
+        """Get client IP, considering proxy headers"""
+        forwarded = request.headers.get("x-forwarded-for")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+        return request.client.host if request.client else "unknown"
+    
+    def _clean_old_requests(self, ip: str, now: float):
+        """Remove requests outside the current window"""
+        cutoff = now - self.window_seconds
+        self.request_counts[ip] = [ts for ts in self.request_counts[ip] if ts > cutoff]
+    
+    async def dispatch(self, request: Request, call_next):
+        # Skip rate limiting for health checks and static files
+        if request.url.path in ["/health", "/ready"] or not request.url.path.startswith("/api"):
+            return await call_next(request)
+        
+        ip = self._get_client_ip(request)
+        now = time_module.time()
+        
+        # Clean old requests and check limit
+        self._clean_old_requests(ip, now)
+        
+        if len(self.request_counts[ip]) >= self.requests_per_window:
+            return JSONResponse(
+                {"error": "Rate limit exceeded. Please try again later."},
+                status_code=429,
+                headers={"Retry-After": str(self.window_seconds)}
+            )
+        
+        # Record this request
+        self.request_counts[ip].append(now)
+        
+        response = await call_next(request)
+        
+        # Add rate limit headers
+        remaining = self.requests_per_window - len(self.request_counts[ip])
+        response.headers["X-RateLimit-Limit"] = str(self.requests_per_window)
+        response.headers["X-RateLimit-Remaining"] = str(max(0, remaining))
+        response.headers["X-RateLimit-Window"] = str(self.window_seconds)
+        
+        return response
+
 db = Database(os.path.join(DATA_DIR, "chatraw.db"))
 llm_service = LLMService(db)
 rag_service = RAGService(db, llm_service)
@@ -968,23 +1120,53 @@ rag_service = RAGService(db, llm_service)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """App lifecycle: startup and shutdown"""
-    print("🚀 Starting ChatRaw...")
+    logger.info("Starting ChatRaw service")
     yield
     # Cleanup on shutdown
-    print("🛑 Shutting down ChatRaw...")
+    logger.info("Shutting down ChatRaw service")
     await close_http_session()
 
 app = FastAPI(title="ChatRaw", lifespan=lifespan)
 
+# Add rate limiting middleware (if enabled)
+if RATE_LIMIT_ENABLED:
+    app.add_middleware(RateLimitMiddleware, requests_per_window=RATE_LIMIT_REQUESTS, window_seconds=RATE_LIMIT_WINDOW)
+
+# Parse CORS origins: "*" for all, or comma-separated list like "http://localhost:3000,https://example.com"
+cors_origins = ["*"] if CORS_ORIGINS == "*" else [origin.strip() for origin in CORS_ORIGINS.split(",")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=cors_origins,
+    allow_credentials=True if CORS_ORIGINS != "*" else False,  # credentials not allowed with "*"
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # ============ API Routes ============
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for load balancers and container orchestration"""
+    return {"status": "healthy", "service": "chatraw"}
+
+@app.get("/ready")
+async def readiness_check():
+    """Readiness check - verifies database connectivity"""
+    try:
+        # Test database connection
+        cursor = db.get_conn().cursor()
+        cursor.execute("SELECT 1")
+        cursor.fetchone()
+        
+        # Check if required tables exist
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='chats'")
+        if not cursor.fetchone():
+            return JSONResponse({"status": "not_ready", "reason": "database not initialized"}, status_code=503)
+        
+        return {"status": "ready", "database": "connected"}
+    except Exception as e:
+        return JSONResponse({"status": "not_ready", "reason": str(e)}, status_code=503)
 
 @app.get("/api/settings")
 async def get_settings():
@@ -1144,8 +1326,8 @@ async def chat(request: Request):
 async def get_documents():
     return db.get_documents()
 
-def parse_pdf(content: bytes) -> str:
-    """Parse PDF file content to text"""
+def _parse_pdf_sync(content: bytes) -> str:
+    """Synchronous PDF parsing (to be run in thread pool)"""
     if not PDF_SUPPORT:
         raise ValueError("PDF support not available. Install pypdf.")
     
@@ -1161,8 +1343,8 @@ def parse_pdf(content: bytes) -> str:
     except Exception as e:
         raise ValueError(f"Failed to parse PDF: {str(e)}")
 
-def parse_docx(content: bytes) -> str:
-    """Parse DOCX file content to text"""
+def _parse_docx_sync(content: bytes) -> str:
+    """Synchronous DOCX parsing (to be run in thread pool)"""
     if not DOCX_SUPPORT:
         raise ValueError("DOCX support not available. Install python-docx.")
     
@@ -1177,35 +1359,42 @@ def parse_docx(content: bytes) -> str:
     except Exception as e:
         raise ValueError(f"Failed to parse DOCX: {str(e)}")
 
-def parse_document_content(filename: str, content: bytes) -> str:
-    """Parse document based on file extension"""
+def _parse_text_sync(content: bytes) -> str:
+    """Synchronous text decoding"""
+    try:
+        return content.decode("utf-8")
+    except:
+        return content.decode("latin-1")
+
+async def parse_document_content(filename: str, content: bytes) -> str:
+    """Parse document based on file extension (async - runs blocking IO in thread pool)"""
     ext = filename.lower().split('.')[-1] if '.' in filename else ''
     
     if ext == 'pdf':
-        return parse_pdf(content)
+        return await asyncio.to_thread(_parse_pdf_sync, content)
     elif ext in ('docx', 'doc'):
         if ext == 'doc':
             raise ValueError("Old .doc format not supported. Please convert to .docx")
-        return parse_docx(content)
+        return await asyncio.to_thread(_parse_docx_sync, content)
     elif ext in ('txt', 'md', 'markdown', 'text'):
-        try:
-            return content.decode("utf-8")
-        except:
-            return content.decode("latin-1")
+        return await asyncio.to_thread(_parse_text_sync, content)
     else:
         # Try to decode as text
-        try:
-            return content.decode("utf-8")
-        except:
-            return content.decode("latin-1")
+        return await asyncio.to_thread(_parse_text_sync, content)
 
 @app.post("/api/documents")
 async def upload_document(file: UploadFile = File(...)):
+    # Check file size limit
     content = await file.read()
+    if len(content) > MAX_UPLOAD_SIZE:
+        return JSONResponse(
+            {"error": f"File too large. Maximum size is {MAX_UPLOAD_SIZE // (1024*1024)}MB"},
+            status_code=413
+        )
     
-    # Parse document based on file type
+    # Parse document based on file type (async to avoid blocking)
     try:
-        text = parse_document_content(file.filename, content)
+        text = await parse_document_content(file.filename, content)
     except ValueError as e:
         return JSONResponse({"error": str(e)}, status_code=400)
     
@@ -1221,11 +1410,20 @@ async def upload_document(file: UploadFile = File(...)):
         total = len(chunks)
         yield json.dumps({"status": "chunking", "total": total}) + "\n"
         
-        for i, chunk in enumerate(chunks):
-            embedding = await llm_service.get_embedding(chunk)
-            db.save_chunk(doc_id, chunk, embedding if embedding else None)
-            progress = int((i + 1) / total * 100)
-            yield json.dumps({"status": "embedding", "progress": progress, "current": i + 1, "total": total}) + "\n"
+        # Batch embedding for efficiency (10 chunks per API call)
+        batch_size = 10
+        processed = 0
+        
+        for i in range(0, total, batch_size):
+            batch_chunks = chunks[i:i + batch_size]
+            embeddings = await llm_service.get_embeddings_batch(batch_chunks, batch_size=batch_size)
+            
+            # Save each chunk with its embedding
+            for chunk, embedding in zip(batch_chunks, embeddings):
+                db.save_chunk(doc_id, chunk, embedding if embedding else None)
+                processed += 1
+                progress = int(processed / total * 100)
+                yield json.dumps({"status": "embedding", "progress": progress, "current": processed, "total": total}) + "\n"
         
         yield json.dumps({"status": "done", "filename": file.filename}) + "\n"
     
@@ -1240,6 +1438,14 @@ async def delete_document(doc_id: str):
 async def upload_image(file: UploadFile = File(...)):
     import base64
     content = await file.read()
+    
+    # Check image size limit
+    if len(content) > MAX_IMAGE_SIZE:
+        return JSONResponse(
+            {"success": False, "error": f"Image too large. Maximum size is {MAX_IMAGE_SIZE // (1024*1024)}MB"},
+            status_code=413
+        )
+    
     b64 = base64.b64encode(content).decode("utf-8")
     return {"success": True, "filename": file.filename, "base64": b64}
 
@@ -1249,8 +1455,15 @@ async def upload_document_for_chat(file: UploadFile = File(...)):
     try:
         content = await file.read()
         
+        # Check file size limit
+        if len(content) > MAX_UPLOAD_SIZE:
+            return JSONResponse(
+                {"success": False, "error": f"File too large. Maximum size is {MAX_UPLOAD_SIZE // (1024*1024)}MB"},
+                status_code=413
+            )
+        
         try:
-            text = parse_document_content(file.filename, content)
+            text = await parse_document_content(file.filename, content)
         except ValueError as e:
             return JSONResponse({"success": False, "error": str(e)}, status_code=400)
         except Exception as e:
@@ -1366,6 +1579,6 @@ app.mount("/", StaticFiles(directory="static", html=True), name="static")
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 51111))
-    print(f"🚀 ChatRaw running at: http://localhost:{port}")
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    logger.info(f"ChatRaw starting on http://0.0.0.0:{port}")
+    uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
 
