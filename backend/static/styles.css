@@ -528,11 +528,7 @@ body {
 .message-content table {
     width: 100%;
     border-collapse: collapse;
-    border-spacing: 0;
     margin: 20px 0;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
     font-size: 0.95em;
 }
 
@@ -540,35 +536,25 @@ body {
     background: var(--bg-secondary);
 }
 
-.message-content table thead th {
-    font-weight: 600;
-    text-align: left;
+.message-content table th,
+.message-content table td {
     padding: 12px 16px;
-    border-bottom: 2px solid var(--border-color);
+    border: 1px solid var(--border-color);
     color: var(--text-primary);
 }
 
-.message-content table tbody tr {
-    border-bottom: 1px solid var(--border-color);
-    transition: background 0.15s ease;
+.message-content table th {
+    font-weight: 600;
+    text-align: left;
+    background: var(--bg-secondary);
 }
 
-.message-content table tbody tr:last-child {
-    border-bottom: none;
+.message-content table tbody tr {
+    transition: background 0.15s ease;
 }
 
 .message-content table tbody tr:hover {
     background: var(--bg-hover);
-}
-
-.message-content table tbody td {
-    padding: 12px 16px;
-    color: var(--text-primary);
-}
-
-.message-content table th:not(:last-child),
-.message-content table td:not(:last-child) {
-    border-right: 1px solid var(--border-color);
 }
 
 /* Markdown Lists */
