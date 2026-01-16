@@ -3,6 +3,13 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Install build dependencies for ARM platforms
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install dependencies with retry and trusted hosts
 COPY backend/requirements.txt .
 RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements.txt || \
