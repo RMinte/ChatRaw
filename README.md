@@ -171,6 +171,50 @@ docker pull ghcr.io/massif-01/chatraw:latest
 
 ---
 
+## 🔄 Update Guide
+
+### Updating to v2.0.0
+
+If you're upgrading from v1.x:
+
+**Docker Users:**
+```bash
+# Stop and remove old container
+docker stop chatraw && docker rm chatraw
+
+# Pull new image
+docker pull massif01/chatraw:2.0.0
+
+# Run new container (data persists in volume)
+docker run -d -p 51111:51111 -v chatraw-data:/app/data massif01/chatraw:2.0.0
+```
+
+Or with docker-compose:
+```bash
+# Pull new image
+docker-compose pull
+
+# Restart services
+docker-compose up -d
+```
+
+**Source Code Users:**
+```bash
+cd ChatRaw
+git pull origin main
+cd backend
+pip install -r requirements.txt --upgrade
+python main.py
+```
+
+**Important Changes in v2.0.0:**
+- ⚠️ RAG functionality has been moved to a plugin
+- Install the "Lightweight RAG Demo" plugin from Plugin Market if you need RAG features
+- Default theme changed to light mode (can be changed in Settings)
+- All chat history and settings are automatically preserved
+
+---
+
 ## 🛠️ Configuration
 
 ### Initial Setup
@@ -406,6 +450,50 @@ docker pull massif01/chatraw:latest
 # GitHub Container Registry
 docker pull ghcr.io/massif-01/chatraw:latest
 ```
+
+---
+
+## 🔄 更新指南
+
+### 升级到 v2.0.0
+
+如果你正在从 v1.x 升级：
+
+**Docker 用户：**
+```bash
+# 停止并移除旧容器
+docker stop chatraw && docker rm chatraw
+
+# 拉取新镜像
+docker pull massif01/chatraw:2.0.0
+
+# 运行新容器（数据持久化在卷中）
+docker run -d -p 51111:51111 -v chatraw-data:/app/data massif01/chatraw:2.0.0
+```
+
+或使用 docker-compose：
+```bash
+# 拉取新镜像
+docker-compose pull
+
+# 重启服务
+docker-compose up -d
+```
+
+**源码用户：**
+```bash
+cd ChatRaw
+git pull origin main
+cd backend
+pip install -r requirements.txt --upgrade
+python main.py
+```
+
+**v2.0.0 重要变更：**
+- ⚠️ RAG 功能已迁移至插件
+- 如需使用 RAG 功能，请从插件市场安装"轻量 RAG 演示"插件
+- 默认主题改为亮色模式（可在设置中更改）
+- 所有对话历史和设置会自动保留
 
 ---
 
