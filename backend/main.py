@@ -1757,9 +1757,11 @@ async def install_plugin(request: PluginInstallRequest):
                 if resp.status != 200:
                     return JSONResponse({"success": False, "error": f"Failed to fetch manifest: HTTP {resp.status}"}, status_code=400)
                 try:
-                    manifest = await resp.json()
-                except Exception:
-                    return JSONResponse({"success": False, "error": "Invalid manifest.json format"}, status_code=400)
+                    # GitHub raw returns text/plain, so we need to parse manually
+                    manifest_text = await resp.text()
+                    manifest = json.loads(manifest_text)
+                except Exception as e:
+                    return JSONResponse({"success": False, "error": f"Invalid manifest.json format: {str(e)}"}, status_code=400)
             
             plugin_id = manifest.get("id")
             if not plugin_id:
