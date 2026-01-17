@@ -58,8 +58,8 @@
         "zh": "Excel 解析器"
       },
       "description": {
-        "en": "Parse Excel files (.xlsx, .xls) for RAG knowledge base",
-        "zh": "解析 Excel 文件（.xlsx, .xls）用于 RAG 知识库"
+        "en": "Parse Excel files (.xlsx, .xls) into model context to enhance responses",
+        "zh": "解析 Excel 文件（.xlsx, .xls）置入模型上下文，用于增强模型回答"
       },
       "author": "ChatRaw",
       "type": "document_parser",
@@ -74,8 +74,8 @@
         "zh": "CSV 解析器"
       },
       "description": {
-        "en": "Parse CSV/TSV files for RAG knowledge base with multiple output formats",
-        "zh": "解析 CSV/TSV 文件用于 RAG 知识库，支持多种输出格式"
+        "en": "Parse CSV/TSV files into model context to enhance responses",
+        "zh": "解析 CSV 文件（.csv, .tsv）置入模型上下文，用于增强模型回答"
       },
       "author": "ChatRaw",
       "type": "document_parser",
