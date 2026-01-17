@@ -395,8 +395,8 @@
             .mm-add-btn {
                 width: 100%;
                 padding: 10px 16px;
-                background: #3b82f6;
-                color: #ffffff;
+                background: var(--text-primary);
+                color: var(--bg-primary);
                 border: none;
                 border-radius: 8px;
                 cursor: pointer;
@@ -405,13 +405,13 @@
                 align-items: center;
                 justify-content: center;
                 gap: 8px;
-                transition: background 0.2s;
+                transition: opacity 0.2s;
             }
             .mm-add-btn:hover {
-                background: #2563eb;
+                opacity: 0.8;
             }
             .mm-add-btn svg {
-                stroke: #ffffff;
+                stroke: var(--bg-primary);
             }
             .mm-model-list {
                 flex: 1;
@@ -429,13 +429,13 @@
                 gap: 10px;
             }
             .mm-model-item:hover {
-                background: var(--hover-bg);
+                background: var(--bg-hover);
             }
             .mm-model-item.selected {
-                background: #3b82f6;
+                background: var(--text-primary);
             }
             .mm-model-item.selected .mm-model-name {
-                color: #ffffff;
+                color: var(--bg-primary);
             }
             .mm-model-toggle {
                 flex-shrink: 0;
@@ -455,7 +455,7 @@
                 flex-shrink: 0;
             }
             .mm-model-status.active {
-                background: #22c55e;
+                background: var(--text-primary);
             }
             .mm-content {
                 flex: 1;
@@ -539,17 +539,18 @@
             }
             .mm-btn-verify {
                 padding: 12px 24px;
-                background: #10b981;
-                color: #ffffff;
-                border: none;
+                background: transparent;
+                color: var(--text-primary);
+                border: 1px solid var(--border-color);
                 border-radius: 8px;
                 cursor: pointer;
                 font-size: 14px;
                 font-weight: 500;
-                transition: background 0.2s;
+                transition: all 0.2s;
             }
             .mm-btn-verify:hover {
-                background: #059669;
+                background: var(--bg-hover);
+                border-color: var(--text-primary);
             }
             .mm-btn-verify:disabled {
                 opacity: 0.6;
@@ -557,23 +558,23 @@
             }
             .mm-btn-save {
                 padding: 12px 24px;
-                background: #3b82f6;
-                color: #ffffff;
+                background: var(--text-primary);
+                color: var(--bg-primary);
                 border: none;
                 border-radius: 8px;
                 cursor: pointer;
                 font-size: 14px;
                 font-weight: 500;
-                transition: background 0.2s;
+                transition: opacity 0.2s;
             }
             .mm-btn-save:hover {
-                background: #2563eb;
+                opacity: 0.8;
             }
             .mm-btn-danger {
                 padding: 12px 24px;
                 background: transparent;
-                color: #ef4444;
-                border: 1px solid #ef4444;
+                color: var(--text-secondary);
+                border: 1px solid var(--border-color);
                 border-radius: 8px;
                 cursor: pointer;
                 font-size: 14px;
@@ -581,8 +582,8 @@
                 transition: all 0.2s;
             }
             .mm-btn-danger:hover {
-                background: #ef4444;
-                color: #ffffff;
+                color: var(--text-primary);
+                border-color: var(--text-primary);
             }
             .mm-verify-msg {
                 margin-top: 12px;
@@ -591,24 +592,26 @@
                 border-radius: 6px;
             }
             .mm-verify-msg.success {
-                background: rgba(34, 197, 94, 0.1);
-                color: #22c55e;
+                background: var(--bg-secondary);
+                color: var(--text-primary);
+                border: 1px solid var(--border-color);
             }
             .mm-verify-msg.error {
-                background: rgba(239, 68, 68, 0.1);
-                color: #ef4444;
+                background: var(--bg-secondary);
+                color: var(--text-secondary);
+                border: 1px solid var(--border-color);
             }
             .mm-toggle {
                 position: relative;
                 width: 36px;
                 height: 20px;
-                background: #d1d5db;
+                background: var(--border-color);
                 border-radius: 10px;
                 cursor: pointer;
                 transition: background 0.2s;
             }
             .mm-toggle.checked {
-                background: #22c55e;
+                background: var(--text-primary);
             }
             .mm-toggle-handle {
                 position: absolute;
@@ -616,12 +619,13 @@
                 left: 2px;
                 width: 16px;
                 height: 16px;
-                background: white;
+                background: var(--bg-primary);
                 border-radius: 50%;
                 transition: left 0.2s;
             }
             .mm-toggle.checked .mm-toggle-handle {
                 left: 18px;
+                background: var(--bg-primary);
             }
             .mm-section-title {
                 font-size: 18px;
@@ -649,15 +653,15 @@
                 color: var(--text-primary);
             }
             .mm-footer-btn.cancel:hover {
-                background: var(--hover-bg);
+                background: var(--bg-hover);
             }
             .mm-footer-btn.save {
-                background: var(--primary-color);
+                background: var(--text-primary);
                 border: none;
-                color: white;
+                color: var(--bg-primary);
             }
             .mm-footer-btn.save:hover {
-                background: var(--primary-hover);
+                opacity: 0.8;
             }
         `;
     }
