@@ -43,8 +43,9 @@
             tools: 'Tools',
             contextLength: 'Context Length',
             maxOutput: 'Max Output',
-            saveAndVerify: 'Save & Verify',
+            verify: 'Verify',
             verifying: 'Verifying...',
+            save: 'Save',
             active: 'Active',
             error: 'Error',
             save: 'Save',
@@ -79,8 +80,9 @@
             tools: '工具',
             contextLength: '上下文长度',
             maxOutput: '最大输出',
-            saveAndVerify: '保存并验证',
+            verify: '验证',
             verifying: '验证中...',
+            save: '保存',
             active: '活跃',
             error: '错误',
             save: '保存',
@@ -306,6 +308,20 @@
         renderUI();
     }
     
+    function updateModelFromForm(model) {
+        model.displayName = document.getElementById('mm-displayName')?.value || '';
+        model.api_url = document.getElementById('mm-apiUrl')?.value || '';
+        model.api_key = document.getElementById('mm-apiKey')?.value || '';
+        model.model_id = document.getElementById('mm-modelId')?.value || '';
+        model.capability = {
+            vision: document.getElementById('mm-vision')?.checked || false,
+            reasoning: document.getElementById('mm-reasoning')?.checked || false,
+            tools: document.getElementById('mm-tools')?.checked || false
+        };
+        model.context_length = parseInt(document.getElementById('mm-contextLength')?.value) || 8192;
+        model.max_output = parseInt(document.getElementById('mm-maxOutput')?.value) || 4096;
+    }
+    
     async function verifyModel(model) {
         if (!model.api_url || !model.model_id) {
             model.status = 'error';
@@ -357,6 +373,7 @@
             .mm-container {
                 display: flex;
                 height: 100%;
+                max-height: 70vh;
                 min-height: 400px;
                 gap: 0;
                 border-radius: 12px;
@@ -516,35 +533,51 @@
             }
             .mm-btn-row {
                 display: flex;
+                flex-wrap: wrap;
                 gap: 12px;
                 margin-top: 24px;
             }
-            .mm-btn-primary {
-                flex: 1;
-                padding: 12px 20px;
+            .mm-btn-verify {
+                padding: 12px 24px;
+                background: #10b981;
+                color: #ffffff;
+                border: none;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: 500;
+                transition: background 0.2s;
+            }
+            .mm-btn-verify:hover {
+                background: #059669;
+            }
+            .mm-btn-verify:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+            .mm-btn-save {
+                padding: 12px 24px;
                 background: #3b82f6;
                 color: #ffffff;
                 border: none;
                 border-radius: 8px;
                 cursor: pointer;
                 font-size: 14px;
+                font-weight: 500;
                 transition: background 0.2s;
             }
-            .mm-btn-primary:hover {
+            .mm-btn-save:hover {
                 background: #2563eb;
             }
-            .mm-btn-primary:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-            }
             .mm-btn-danger {
-                padding: 12px 20px;
+                padding: 12px 24px;
                 background: transparent;
                 color: #ef4444;
                 border: 1px solid #ef4444;
                 border-radius: 8px;
                 cursor: pointer;
                 font-size: 14px;
+                font-weight: 500;
                 transition: all 0.2s;
             }
             .mm-btn-danger:hover {
@@ -733,9 +766,10 @@
             </div>
             
             <div class="mm-btn-row">
-                <button class="mm-btn-primary" id="mm-saveVerify" ${isVerifying ? 'disabled' : ''}>
-                    ${isVerifying ? t('verifying') : t('saveAndVerify')}
+                <button class="mm-btn-verify" id="mm-verify" ${isVerifying ? 'disabled' : ''}>
+                    ${isVerifying ? t('verifying') : t('verify')}
                 </button>
+                <button class="mm-btn-save" id="mm-save">${t('save')}</button>
                 <button class="mm-btn-danger" id="mm-delete">${t('deleteModel')}</button>
             </div>
             
@@ -826,30 +860,33 @@
             };
         });
         
-        // Save & Verify button
-        const saveVerifyBtn = document.getElementById('mm-saveVerify');
-        if (saveVerifyBtn) {
-            saveVerifyBtn.onclick = async () => {
+        // Verify button
+        const verifyBtn = document.getElementById('mm-verify');
+        if (verifyBtn) {
+            verifyBtn.onclick = async () => {
+                const model = pluginData.models.find(m => m.id === selectedModelId);
+                if (!model) return;
+                
+                // Update model from form first
+                updateModelFromForm(model);
+                
+                // Verify
+                await verifyModel(model);
+                renderUI();
+            };
+        }
+        
+        // Save button
+        const saveBtn = document.getElementById('mm-save');
+        if (saveBtn) {
+            saveBtn.onclick = async () => {
                 const model = pluginData.models.find(m => m.id === selectedModelId);
                 if (!model) return;
                 
                 // Update model from form
-                model.displayName = document.getElementById('mm-displayName')?.value || '';
-                model.api_url = document.getElementById('mm-apiUrl')?.value || '';
-                model.api_key = document.getElementById('mm-apiKey')?.value || '';
-                model.model_id = document.getElementById('mm-modelId')?.value || '';
-                model.capability = {
-                    vision: document.getElementById('mm-vision')?.checked || false,
-                    reasoning: document.getElementById('mm-reasoning')?.checked || false,
-                    tools: document.getElementById('mm-tools')?.checked || false
-                };
-                model.context_length = parseInt(document.getElementById('mm-contextLength')?.value) || 8192;
-                model.max_output = parseInt(document.getElementById('mm-maxOutput')?.value) || 4096;
+                updateModelFromForm(model);
                 
-                // Verify first
-                const verified = await verifyModel(model);
-                
-                // Save regardless of verification result
+                // Save
                 await saveModel(model);
                 renderUI();
             };
