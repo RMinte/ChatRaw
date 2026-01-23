@@ -133,6 +133,21 @@ For standard settings UI (`customSettings: false`):
 
 For complex plugins that need full control over settings UI, use `customSettings: true`.
 
+**Scrollable Content with Fixed Footer**: If your settings UI has long content, use this structure:
+
+```html
+<div style="display:flex; flex-direction:column; height:100%; max-height:70vh;">
+    <div style="flex:1; min-height:0; overflow-y:auto;">
+        <!-- Your scrollable settings content -->
+    </div>
+    <div style="flex-shrink:0; padding:16px 24px; border-top:1px solid var(--border-color);">
+        <!-- Cancel/Save buttons (fixed at bottom) -->
+    </div>
+</div>
+```
+
+> **Key**: `min-height:0` on the scrollable container is required - without it, flex children won't shrink below their content size and scrolling won't work.
+
 **manifest.json:**
 ```json
 {
@@ -648,6 +663,21 @@ your-plugin/
 ### 自定义设置 UI
 
 对于需要完全控制设置界面的复杂插件，使用 `customSettings: true`。
+
+**滚动内容 + 固定底部按钮**：如果设置界面内容较长，使用以下结构：
+
+```html
+<div style="display:flex; flex-direction:column; height:100%; max-height:70vh;">
+    <div style="flex:1; min-height:0; overflow-y:auto;">
+        <!-- 可滚动的设置内容 -->
+    </div>
+    <div style="flex-shrink:0; padding:16px 24px; border-top:1px solid var(--border-color);">
+        <!-- 取消/保存按钮（固定在底部） -->
+    </div>
+</div>
+```
+
+> **关键**：滚动容器上的 `min-height:0` 是必需的——没有它，flex 子元素不会收缩到比内容更小的尺寸，滚动将无法生效。
 
 **manifest.json:**
 ```json
