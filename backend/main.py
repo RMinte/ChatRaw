@@ -1607,6 +1607,45 @@ MAX_PLUGIN_SIZE = int(os.environ.get("MAX_PLUGIN_SIZE", str(10 * 1024 * 1024)))
 # Ensure plugin directories exist
 os.makedirs(PLUGINS_INSTALLED_DIR, exist_ok=True)
 
+# Auto-install bundled plugins with lib/ directory (offline dependencies)
+BUNDLED_PLUGINS_DIR = os.path.join(os.path.dirname(__file__), "Plugins", "Plugin_market")
+
+def auto_install_bundled_plugins():
+    """Auto-install bundled plugins that have lib/ directory (offline dependencies)
+    
+    This handles plugins like markdown-enhancer that bundle KaTeX, Mermaid, etc.
+    Online installation only downloads main.js/manifest.json/icon.png, not lib/.
+    This function ensures lib/ is copied from the bundled version in the Docker image.
+    """
+    if not os.path.exists(BUNDLED_PLUGINS_DIR):
+        return
+    
+    for plugin_id in os.listdir(BUNDLED_PLUGINS_DIR):
+        bundled_dir = os.path.join(BUNDLED_PLUGINS_DIR, plugin_id)
+        if not os.path.isdir(bundled_dir):
+            continue
+        
+        # Check if this plugin has a lib/ directory (needs special handling)
+        lib_dir = os.path.join(bundled_dir, "lib")
+        if not os.path.exists(lib_dir):
+            continue
+        
+        installed_dir = os.path.join(PLUGINS_INSTALLED_DIR, plugin_id)
+        installed_lib = os.path.join(installed_dir, "lib")
+        
+        # If plugin is installed but lib/ is missing, copy lib/
+        if os.path.exists(installed_dir) and not os.path.exists(installed_lib):
+            shutil.copytree(lib_dir, installed_lib)
+            print(f"[Plugins] Auto-installed lib/ for {plugin_id}")
+        
+        # If plugin not installed at all, install the whole plugin
+        elif not os.path.exists(installed_dir):
+            shutil.copytree(bundled_dir, installed_dir)
+            print(f"[Plugins] Auto-installed bundled plugin: {plugin_id}")
+
+# Run auto-install on startup
+auto_install_bundled_plugins()
+
 # Simple file lock for config
 import threading
 _plugin_config_lock = threading.Lock()
