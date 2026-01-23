@@ -646,25 +646,36 @@
     }
     
     function getMessageTextContent(element) {
-        // Get the raw content directly from Alpine.js data instead of parsing DOM
-        // This avoids all the UI elements (thinking, references, etc.)
-        
-        const messageEl = element.closest('.message');
-        if (!messageEl) return '';
-        
-        // Find this message's index in the DOM
-        const allMessages = document.querySelectorAll('.messages .message');
-        const index = Array.from(allMessages).indexOf(messageEl);
-        
-        // Get messages from Alpine.js data via ChatRawPlugin
-        const messages = window.ChatRawPlugin?.utils?.getMessages?.() || [];
-        
-        if (index >= 0 && index < messages.length) {
-            // Return the raw content from backend data
-            return messages[index].content || '';
+        // 排除法：遍历 message-content 的直接子元素
+        // 跳过所有已知的 UI 元素，剩下的就是内容 div
+        for (const child of element.children) {
+            if (child.tagName !== 'DIV') continue;
+            // 跳过所有已知的 UI 元素
+            if (child.classList.contains('thinking-block')) continue;
+            if (child.classList.contains('rag-references')) continue;
+            if (child.classList.contains('typing-indicator')) continue;
+            if (child.classList.contains('message-copy-container')) continue;
+            
+            // 这个就是内容 div
+            const clone = child.cloneNode(true);
+            clone.querySelectorAll('.code-copy-btn, svg').forEach(el => el.remove());
+            
+            // 处理 KaTeX，还原为 LaTeX 源码
+            clone.querySelectorAll('.katex-block').forEach(el => {
+                const annotation = el.querySelector('annotation[encoding="application/x-tex"]');
+                if (annotation) {
+                    el.textContent = '$$' + annotation.textContent + '$$';
+                }
+            });
+            clone.querySelectorAll('.katex-inline').forEach(el => {
+                const annotation = el.querySelector('annotation[encoding="application/x-tex"]');
+                if (annotation) {
+                    el.textContent = '$' + annotation.textContent + '$';
+                }
+            });
+            
+            return (clone.textContent || '').trim();
         }
-        
-        // Fallback: basic text extraction if data access fails
         return '';
     }
     
