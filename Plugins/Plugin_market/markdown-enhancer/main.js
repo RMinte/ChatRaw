@@ -27,10 +27,7 @@
     let observerInitialized = false;
     let mermaidCounter = 0;
     let settings = {};
-    let pluginEnabled = true;
     let mainObserver = null;
-    let headStyleObserver = null;
-    let pluginStateTimer = null;
     
     // Content stability tracking - wait for streaming to complete
     const contentStabilityMap = new Map();
@@ -234,38 +231,6 @@
                 background: var(--success-color, #10b981);
                 color: white;
                 border-color: var(--success-color, #10b981);
-            }
-            
-            /* Message copy button - small icon at bottom left */
-            .message-copy-container {
-                display: flex;
-                justify-content: flex-start;
-                margin-top: 8px;
-            }
-            .message-copy-btn {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 28px;
-                height: 28px;
-                padding: 0;
-                background: transparent;
-                color: var(--text-tertiary, #999);
-                border: none;
-                border-radius: 4px;
-                cursor: pointer;
-                transition: background 0.2s, color 0.2s;
-            }
-            .message-copy-btn:hover {
-                background: var(--bg-hover, #f0f0f0);
-                color: var(--text-secondary, #666);
-            }
-            .message-copy-btn.copied {
-                color: var(--success-color, #10b981);
-            }
-            .message-copy-btn svg {
-                width: 16px;
-                height: 16px;
             }
             
             /* KaTeX styles */
