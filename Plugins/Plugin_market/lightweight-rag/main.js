@@ -439,7 +439,7 @@
                 </div>
                 
                 <!-- Right Content -->
-                <div class="rag-settings-content" style="flex:1; padding:24px; overflow-y:auto;">
+                <div class="rag-settings-content" style="flex:1; min-height:0; padding:24px; overflow-y:auto;">
                     <!-- RAG Settings Tab -->
                     <div class="rag-tab-content" data-tab="rag" style="display:${currentTab === 'rag' ? 'block' : 'none'};">
                         <div class="section-header" style="margin-bottom:24px;">
