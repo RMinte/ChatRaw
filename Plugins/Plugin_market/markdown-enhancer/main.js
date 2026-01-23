@@ -192,32 +192,30 @@
                 border-color: var(--success-color, #10b981);
             }
             
-            /* Message copy button */
-            .message.assistant {
-                position: relative;
+            /* Message copy button - at bottom of message */
+            .message-copy-container {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 12px;
+                padding-top: 8px;
+                border-top: 1px solid var(--border-color, #eee);
             }
             .message-copy-btn {
-                position: absolute;
-                top: 8px;
-                right: 8px;
-                padding: 6px;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 12px;
+                font-size: 13px;
                 background: var(--bg-secondary, #f5f5f5);
                 color: var(--text-secondary, #666);
                 border: 1px solid var(--border-color, #ddd);
                 border-radius: 6px;
                 cursor: pointer;
-                opacity: 0;
-                transition: opacity 0.2s, background 0.2s;
-                z-index: 10;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }
-            .message.assistant:hover .message-copy-btn {
-                opacity: 1;
+                transition: background 0.2s, color 0.2s;
             }
             .message-copy-btn:hover {
                 background: var(--bg-hover, #e5e5e5);
+                color: var(--text-primary, #333);
             }
             .message-copy-btn.copied {
                 background: var(--success-color, #10b981);
@@ -225,8 +223,8 @@
                 border-color: var(--success-color, #10b981);
             }
             .message-copy-btn svg {
-                width: 16px;
-                height: 16px;
+                width: 14px;
+                height: 14px;
             }
             
             /* KaTeX styles */
@@ -480,31 +478,32 @@
     
     // ============ Message Copy Button ============
     function addMessageCopyButton(element) {
-        // Find assistant messages
-        const messages = element.querySelectorAll('.message.assistant');
+        // Find assistant message content areas
+        const messageContents = element.querySelectorAll('.message.assistant .message-content');
         
-        for (const msg of messages) {
-            if (msg.querySelector('.message-copy-btn')) continue;
+        for (const content of messageContents) {
+            // Skip if already has copy button
+            if (content.querySelector('.message-copy-container')) continue;
             
-            const content = msg.querySelector('.message-content');
-            if (!content) continue;
+            // Create container at bottom of message
+            const container = document.createElement('div');
+            container.className = 'message-copy-container';
             
             const btn = document.createElement('button');
             btn.className = 'message-copy-btn';
-            btn.title = t('copyMessage');
             btn.innerHTML = `
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
+                <span>${t('copyMessage')}</span>
             `;
             
             btn.onclick = async (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                // Get the original markdown content from the message
-                // We need to extract text content, preserving structure
+                // Get the text content from the message
                 const textContent = getMessageTextContent(content);
                 
                 try {
@@ -513,6 +512,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
+                        <span>${t('copied')}</span>
                     `;
                     btn.classList.add('copied');
                     setTimeout(() => {
@@ -521,6 +521,7 @@
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                             </svg>
+                            <span>${t('copyMessage')}</span>
                         `;
                         btn.classList.remove('copied');
                     }, 2000);
@@ -529,7 +530,8 @@
                 }
             };
             
-            msg.appendChild(btn);
+            container.appendChild(btn);
+            content.appendChild(container);
         }
     }
     
