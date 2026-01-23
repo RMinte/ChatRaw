@@ -9,7 +9,8 @@
  * - Extended syntax highlighting (15+ languages)
  * 
  * Architecture: DOM post-processing via MutationObserver
- * (processes content AFTER marked.js renders it)
+ * - Waits for content to stabilize before processing (handles streaming)
+ * - Mermaid SVG styles are isolated to prevent CSS pollution
  * 
  * Fully offline - all dependencies bundled locally.
  */
@@ -26,6 +27,10 @@
     let observerInitialized = false;
     let mermaidCounter = 0;
     let settings = {};
+    
+    // Content stability tracking - wait for streaming to complete
+    const contentStabilityMap = new Map();
+    const STABILITY_DELAY = 800; // Wait 800ms after last change before processing
     
     // ============ i18n ============
     const i18n = {
@@ -113,12 +118,17 @@
             await loadScript(`${LIB_BASE}/mermaid.min.js`);
             
             if (window.mermaid) {
-                // Initialize mermaid with strict security to avoid affecting other elements
+                // Initialize mermaid with sandbox mode for style isolation
                 window.mermaid.initialize({
                     startOnLoad: false,
                     theme: theme === 'dark' ? 'dark' : theme,
-                    securityLevel: 'strict',  // Changed from 'loose' to prevent side effects
-                    fontFamily: 'inherit'
+                    securityLevel: 'strict',
+                    fontFamily: 'inherit',
+                    // Disable flowchart htmlLabels to prevent CSS issues
+                    flowchart: {
+                        htmlLabels: false,
+                        useMaxWidth: true
+                    }
                 });
                 mermaidLoaded = true;
                 console.log('[MarkdownEnhancer] Mermaid loaded');
@@ -192,39 +202,36 @@
                 border-color: var(--success-color, #10b981);
             }
             
-            /* Message copy button - at bottom of message */
+            /* Message copy button - small icon at bottom left */
             .message-copy-container {
                 display: flex;
-                justify-content: flex-end;
-                margin-top: 12px;
-                padding-top: 8px;
-                border-top: 1px solid var(--border-color, #eee);
+                justify-content: flex-start;
+                margin-top: 8px;
             }
             .message-copy-btn {
                 display: inline-flex;
                 align-items: center;
-                gap: 6px;
-                padding: 6px 12px;
-                font-size: 13px;
-                background: var(--bg-secondary, #f5f5f5);
-                color: var(--text-secondary, #666);
-                border: 1px solid var(--border-color, #ddd);
-                border-radius: 6px;
+                justify-content: center;
+                width: 28px;
+                height: 28px;
+                padding: 0;
+                background: transparent;
+                color: var(--text-tertiary, #999);
+                border: none;
+                border-radius: 4px;
                 cursor: pointer;
                 transition: background 0.2s, color 0.2s;
             }
             .message-copy-btn:hover {
-                background: var(--bg-hover, #e5e5e5);
-                color: var(--text-primary, #333);
+                background: var(--bg-hover, #f0f0f0);
+                color: var(--text-secondary, #666);
             }
             .message-copy-btn.copied {
-                background: var(--success-color, #10b981);
-                color: white;
-                border-color: var(--success-color, #10b981);
+                color: var(--success-color, #10b981);
             }
             .message-copy-btn svg {
-                width: 14px;
-                height: 14px;
+                width: 16px;
+                height: 16px;
             }
             
             /* KaTeX styles */
@@ -247,7 +254,7 @@
                 font-size: 0.9em;
             }
             
-            /* Mermaid styles */
+            /* Mermaid styles - isolated container */
             .mermaid-container {
                 display: flex;
                 justify-content: center;
@@ -283,6 +290,10 @@
                 max-width: 100%;
                 height: auto;
             }
+            /* Prevent mermaid SVG from affecting global styles */
+            .mermaid-rendered svg * {
+                font-family: inherit !important;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -290,6 +301,9 @@
     // ============ KaTeX DOM Processing ============
     function processKatexInElement(element) {
         if (!window.katex || settings.enableKatex === false) return;
+        
+        // Skip if already processed
+        if (element.dataset.katexProcessed === 'true') return;
         
         // Process text nodes to find math expressions
         const walker = document.createTreeWalker(
@@ -307,6 +321,9 @@
                     if (parent.classList?.contains('katex') || parent.closest('.katex')) {
                         return NodeFilter.FILTER_REJECT;
                     }
+                    if (parent.closest('.mermaid-container')) {
+                        return NodeFilter.FILTER_REJECT;
+                    }
                     // Check if contains math delimiters
                     if (/\$\$[\s\S]+?\$\$|\$[^\$\n]+?\$|\\\[[\s\S]+?\\\]|\\\([\s\S]+?\\\)/.test(node.textContent)) {
                         return NodeFilter.FILTER_ACCEPT;
@@ -322,8 +339,11 @@
             nodesToProcess.push(currentNode);
         }
         
-        for (const textNode of nodesToProcess) {
-            processKatexTextNode(textNode);
+        if (nodesToProcess.length > 0) {
+            for (const textNode of nodesToProcess) {
+                processKatexTextNode(textNode);
+            }
+            element.dataset.katexProcessed = 'true';
         }
     }
     
@@ -424,6 +444,23 @@
                 container.innerHTML = svg;
                 container.classList.remove('mermaid-loading');
                 container.classList.add('mermaid-rendered');
+                
+                // CRITICAL: Remove all <style> tags from SVG to prevent CSS pollution
+                const svgElement = container.querySelector('svg');
+                if (svgElement) {
+                    const styleElements = svgElement.querySelectorAll('style');
+                    styleElements.forEach(styleEl => {
+                        console.log('[MarkdownEnhancer] Removing Mermaid style tag to prevent CSS pollution');
+                        styleEl.remove();
+                    });
+                    
+                    // Also remove any foreign objects that might contain styles
+                    const foreignObjects = svgElement.querySelectorAll('foreignObject');
+                    foreignObjects.forEach(fo => {
+                        const foStyles = fo.querySelectorAll('style');
+                        foStyles.forEach(s => s.remove());
+                    });
+                }
             } catch (e) {
                 console.error('[MarkdownEnhancer] Mermaid render error:', e);
                 container.className = 'mermaid-error-container';
@@ -444,6 +481,7 @@
         for (const pre of codeBlocks) {
             if (pre.querySelector('.code-copy-btn')) continue;
             if (pre.dataset.mermaidProcessed) continue;  // Skip mermaid blocks
+            if (pre.closest('.mermaid-container')) continue;
             
             const code = pre.querySelector('code');
             if (!code) continue;
@@ -485,18 +523,31 @@
             // Skip if already has copy button
             if (content.querySelector('.message-copy-container')) continue;
             
-            // Create container at bottom of message
+            // Check if message is still streaming (has typing indicator visible)
+            const msg = content.closest('.message');
+            const typingIndicator = msg?.querySelector('.typing-indicator');
+            if (typingIndicator && typingIndicator.style.display !== 'none' && 
+                !typingIndicator.hasAttribute('style')) {
+                // Typing indicator exists and may be visible, skip for now
+                continue;
+            }
+            
+            // Check if content is empty or very short (likely still loading)
+            const textLength = content.textContent?.trim().length || 0;
+            if (textLength < 10) continue;
+            
+            // Create container at bottom left of message
             const container = document.createElement('div');
             container.className = 'message-copy-container';
             
             const btn = document.createElement('button');
             btn.className = 'message-copy-btn';
+            btn.title = t('copyMessage');
             btn.innerHTML = `
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                 </svg>
-                <span>${t('copyMessage')}</span>
             `;
             
             btn.onclick = async (e) => {
@@ -512,7 +563,6 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                         </svg>
-                        <span>${t('copied')}</span>
                     `;
                     btn.classList.add('copied');
                     setTimeout(() => {
@@ -521,7 +571,6 @@
                                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                 <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                             </svg>
-                            <span>${t('copyMessage')}</span>
                         `;
                         btn.classList.remove('copied');
                     }, 2000);
@@ -539,8 +588,8 @@
         // Clone to avoid modifying original
         const clone = element.cloneNode(true);
         
-        // Remove copy buttons from clone
-        clone.querySelectorAll('.code-copy-btn, .message-copy-btn').forEach(btn => btn.remove());
+        // Remove copy buttons and containers from clone
+        clone.querySelectorAll('.code-copy-btn, .message-copy-btn, .message-copy-container').forEach(el => el.remove());
         
         // Convert KaTeX back to text (approximate)
         clone.querySelectorAll('.katex-block').forEach(el => {
@@ -581,42 +630,63 @@
         addMessageCopyButton(element);
     }
     
+    // ============ Content Stability Detection ============
+    function scheduleProcessing(element) {
+        // Use element or a unique identifier as key
+        const key = element;
+        
+        // Clear any existing timer for this element
+        const existingTimer = contentStabilityMap.get(key);
+        if (existingTimer) {
+            clearTimeout(existingTimer);
+        }
+        
+        // Schedule new processing after stability delay
+        const timer = setTimeout(async () => {
+            contentStabilityMap.delete(key);
+            await processElement(element);
+        }, STABILITY_DELAY);
+        
+        contentStabilityMap.set(key, timer);
+    }
+    
     // ============ MutationObserver Setup ============
     function initObserver() {
         if (observerInitialized) return;
         
         injectStyles();
         
-        // Debounce processing to avoid excessive calls
-        let processingTimeout = null;
-        const pendingElements = new Set();
-        
-        const processQueue = async () => {
-            const elements = Array.from(pendingElements);
-            pendingElements.clear();
-            
-            for (const el of elements) {
-                await processElement(el);
-            }
-        };
-        
         const observer = new MutationObserver((mutations) => {
+            const elementsToProcess = new Set();
+            
             for (const mutation of mutations) {
+                // Handle added nodes
                 for (const node of mutation.addedNodes) {
                     if (node.nodeType === Node.ELEMENT_NODE) {
                         // Check if it's a message or contains messages
-                        if (node.classList?.contains('message') || 
-                            node.classList?.contains('message-content') ||
-                            node.querySelector?.('.message-content')) {
-                            pendingElements.add(node);
+                        if (node.classList?.contains('message')) {
+                            const content = node.querySelector('.message-content');
+                            if (content) elementsToProcess.add(content);
+                        } else if (node.classList?.contains('message-content')) {
+                            elementsToProcess.add(node);
+                        } else if (node.querySelector?.('.message-content')) {
+                            node.querySelectorAll('.message-content').forEach(el => elementsToProcess.add(el));
                         }
+                    }
+                }
+                
+                // Handle character data changes (streaming content updates)
+                if (mutation.type === 'characterData' || mutation.type === 'childList') {
+                    const messageContent = mutation.target.closest?.('.message-content');
+                    if (messageContent) {
+                        elementsToProcess.add(messageContent);
                     }
                 }
             }
             
-            if (pendingElements.size > 0) {
-                clearTimeout(processingTimeout);
-                processingTimeout = setTimeout(processQueue, 100);
+            // Schedule processing for each element with stability detection
+            for (const el of elementsToProcess) {
+                scheduleProcessing(el);
             }
         });
         
@@ -624,20 +694,20 @@
         const container = document.querySelector('.messages-container') || document.body;
         observer.observe(container, {
             childList: true,
-            subtree: true
+            subtree: true,
+            characterData: true
         });
         
         // Process existing content
         const existingMessages = document.querySelectorAll('.message-content');
         if (existingMessages.length > 0) {
             for (const msg of existingMessages) {
-                pendingElements.add(msg);
+                scheduleProcessing(msg);
             }
-            processQueue();
         }
         
         observerInitialized = true;
-        console.log('[MarkdownEnhancer] Observer initialized');
+        console.log('[MarkdownEnhancer] Observer initialized with content stability detection');
     }
     
     // ============ Load Settings ============
