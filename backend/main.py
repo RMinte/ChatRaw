@@ -11,6 +11,7 @@ import aiohttp
 import io
 import struct
 import logging
+import shutil
 from datetime import datetime
 from typing import Optional, List, AsyncGenerator
 from contextlib import asynccontextmanager
