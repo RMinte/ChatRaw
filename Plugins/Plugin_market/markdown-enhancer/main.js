@@ -646,37 +646,26 @@
     }
     
     function getMessageTextContent(element) {
-        // The actual message content is in a div with x-html attribute (rendered markdown)
-        // Structure: .message-content > div[x-html] contains the actual content
-        const contentDiv = element.querySelector('div[x-html]') || 
-                          element.querySelector('div[x-show="msg.content"]');
+        // Get the raw content directly from Alpine.js data instead of parsing DOM
+        // This avoids all the UI elements (thinking, references, etc.)
         
-        if (!contentDiv) {
-            // Fallback: just get text but exclude known UI elements
-            const clone = element.cloneNode(true);
-            clone.querySelectorAll('.thinking-block, .rag-references, .typing-indicator, .message-copy-container, svg').forEach(el => el.remove());
-            return (clone.textContent || '').trim();
+        const messageEl = element.closest('.message');
+        if (!messageEl) return '';
+        
+        // Find this message's index in the DOM
+        const allMessages = document.querySelectorAll('.messages .message');
+        const index = Array.from(allMessages).indexOf(messageEl);
+        
+        // Get messages from Alpine.js data via ChatRawPlugin
+        const messages = window.ChatRawPlugin?.utils?.getMessages?.() || [];
+        
+        if (index >= 0 && index < messages.length) {
+            // Return the raw content from backend data
+            return messages[index].content || '';
         }
         
-        // Clone the content div
-        const clone = contentDiv.cloneNode(true);
-        
-        // Remove any copy buttons that might be inside
-        clone.querySelectorAll('.code-copy-btn, .message-copy-btn, .message-copy-container, svg').forEach(el => el.remove());
-        
-        // Convert KaTeX back to LaTeX source
-        clone.querySelectorAll('.katex-block').forEach(el => {
-            const annotation = el.querySelector('annotation[encoding="application/x-tex"]');
-            el.textContent = annotation ? '$$' + annotation.textContent + '$$' : el.textContent;
-        });
-        clone.querySelectorAll('.katex-inline').forEach(el => {
-            const annotation = el.querySelector('annotation[encoding="application/x-tex"]');
-            el.textContent = annotation ? '$' + annotation.textContent + '$' : el.textContent;
-        });
-        
-        // Get clean text
-        let text = clone.textContent || clone.innerText || '';
-        return text.replace(/\n{3,}/g, '\n\n').trim();
+        // Fallback: basic text extraction if data access fails
+        return '';
     }
     
     // ============ Main Processing Function ============
