@@ -139,16 +139,23 @@
     
     async function savePluginData() {
         try {
+            const dataToSave = JSON.stringify({ settings: pluginData });
+            console.log('[MultiModel] Saving data:', dataToSave);
+            
             const res = await fetch(`/api/plugins/${encodeURIComponent(PLUGIN_ID)}/settings`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ settings: pluginData })
+                body: dataToSave
             });
+            
+            const responseText = await res.text();
+            console.log('[MultiModel] Save response:', res.status, responseText);
+            
             if (res.ok) {
-                console.log('[MultiModel] Saved plugin data to backend');
+                console.log('[MultiModel] Saved plugin data to backend successfully');
                 return true;
             } else {
-                console.error('[MultiModel] Failed to save plugin data:', res.status);
+                console.error('[MultiModel] Failed to save plugin data:', res.status, responseText);
                 return false;
             }
         } catch (e) {
@@ -850,12 +857,12 @@
         // Add model button
         const addBtn = document.getElementById('mm-add-model');
         if (addBtn) {
-            addBtn.onclick = () => {
+            addBtn.onclick = async () => {
                 const newModel = createNewModel();
                 newModel.displayName = `Model ${pluginData.models.length + 1}`;
                 pluginData.models.push(newModel);
                 selectedModelId = newModel.id;
-                savePluginData();
+                await savePluginData();
                 renderUI();
             };
         }
