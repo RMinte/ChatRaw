@@ -1729,6 +1729,22 @@ async def get_plugins():
     """Get list of installed plugins"""
     return get_installed_plugins()
 
+@app.get("/api/plugins/market")
+async def get_plugin_market():
+    """Get plugin market listing from index.json"""
+    try:
+        market_index = os.path.join("Plugins", "Plugin_market", "index.json")
+        if os.path.exists(market_index):
+            with open(market_index, "r", encoding="utf-8") as f:
+                market_data = json.load(f)
+                return market_data
+        else:
+            logger.warning(f"Plugin market index not found: {market_index}")
+            return {"plugins": []}
+    except Exception as e:
+        logger.error(f"Error loading plugin market: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
 @app.post("/api/plugins/install")
 async def install_plugin(request: PluginInstallRequest):
     """Install a plugin from URL"""
