@@ -163,10 +163,10 @@ ChatRaw features a complete **plugin system** to extend functionality:
 
 ```bash
 # Pull image
-docker pull massif01/chatraw:2.0.0
+docker pull massif01/chatraw:2.0.4
 
 # Run container
-docker run -d -p 51111:51111 -v chatraw-data:/app/data massif01/chatraw:2.0.0
+docker run -d -p 51111:51111 -v chatraw-data:/app/data massif01/chatraw:2.0.4
 ```
 
 Or use docker-compose:
@@ -225,7 +225,7 @@ If you're upgrading from v1.x:
 docker stop chatraw && docker rm chatraw
 
 # Pull new image
-docker pull massif01/chatraw:2.0.0
+docker pull massif01/chatraw:2.0.4
 
 # Run new container (data persists in volume)
 docker run -d -p 51111:51111 -v chatraw-data:/app/data massif01/chatraw:2.0.0
@@ -479,7 +479,7 @@ ChatRaw 拥有完整的**插件系统**以扩展功能：
 
 ```bash
 # 拉取镜像
-docker pull massif01/chatraw:2.0.0
+docker pull massif01/chatraw:2.0.4
 
 # 运行容器
 docker run -d -p 51111:51111 -v chatraw-data:/app/data massif01/chatraw:2.0.0
@@ -541,7 +541,7 @@ docker pull ghcr.io/massif-01/chatraw:latest
 docker stop chatraw && docker rm chatraw
 
 # 拉取新镜像
-docker pull massif01/chatraw:2.0.0
+docker pull massif01/chatraw:2.0.4
 
 # 运行新容器（数据持久化在卷中）
 docker run -d -p 51111:51111 -v chatraw-data:/app/data massif01/chatraw:2.0.0
