@@ -2,26 +2,141 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
     <title>ChatRaw</title>
     <link rel="icon" id="favicon" href="data:,">
+    
+    <!-- Performance: DNS Prefetch & Preconnect for CDN -->
+    <link rel="dns-prefetch" href="https://unpkg.com">
+    <link rel="preconnect" href="https://unpkg.com" crossorigin>
+    
+    <!-- Performance: Preload Critical Resources -->
+    <link rel="preload" href="styles.css?v=5.0" as="style">
+    <link rel="preload" href="app.js?v=5.0" as="script">
+    <link rel="preload" href="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js" as="script" crossorigin>
+    <link rel="preload" href="https://unpkg.com/marked@9.1.6/marked.min.js" as="script" crossorigin>
+    
+    <!-- Critical CSS: Inline for faster first paint -->
+    <style>
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9f9f9;
+            --bg-tertiary: #f0f0f0;
+            --bg-hover: #f3f3f3;
+            --text-primary: #000000;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border-color: #e5e5e5;
+            --border-focus: #000000;
+            --accent-color: #000000;
+            --on-accent: #ffffff;
+            --success-color: #22c55e;
+            --error-color: #ef4444;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+            --font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, 'Courier New', monospace;
+            --transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        [data-theme="dark"] {
+            --bg-primary: #000000;
+            --bg-secondary: #0a0a0a;
+            --bg-tertiary: #161616;
+            --bg-hover: #1a1a1a;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --text-muted: #555555;
+            --border-color: #222222;
+            --border-focus: #ffffff;
+            --accent-color: #ffffff;
+            --on-accent: #000000;
+            --shadow-sm: none;
+            --shadow-md: none;
+            --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; }
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            line-height: 1.6;
+            font-size: 15px;
+            -webkit-font-smoothing: antialiased;
+        }
+        [x-cloak] { display: none !important; }
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            height: 100%;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+        .sidebar.collapsed { width: 72px; min-width: 72px; }
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            background: var(--bg-primary);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+        .welcome {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px;
+        }
+        .welcome h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .welcome-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+        @media (max-width: 768px) {
+            .sidebar { position: fixed; left: 0; top: 0; transform: translateX(0); }
+            .sidebar.collapsed { transform: translateX(-100%); }
+        }
+    </style>
+    
+    <!-- External Scripts -->
     <script defer src="https://unpkg.com/@alpinejs/collapse@3.13.3/dist/cdn.min.js"></script>
     <script defer src="https://unpkg.com/alpinejs@3.13.3/dist/cdn.min.js"></script>
-    <script src="https://unpkg.com/marked@9.1.6/marked.min.js"></script>
+    <script defer src="https://unpkg.com/marked@9.1.6/marked.min.js"></script>
     <!-- highlight.js core + common languages only (~50KB vs ~500KB) -->
-    <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
-    <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/python.min.js"></script>
-    <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/javascript.min.js"></script>
-    <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/bash.min.js"></script>
-    <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/json.min.js"></script>
-    <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/sql.min.js"></script>
-    <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/xml.min.js"></script>
-    <script src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/css.min.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/github-dark.min.css">
-    <link rel="stylesheet" href="styles.css?v=4.0">
+    <script defer src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js"></script>
+    <script defer src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/python.min.js"></script>
+    <script defer src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/javascript.min.js"></script>
+    <script defer src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/bash.min.js"></script>
+    <script defer src="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/languages/json.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/github-dark.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/github-dark.min.css"></noscript>
+    <link rel="stylesheet" href="styles.css?v=5.0">
 </head>
 <body x-data="app()" x-init="init()" :data-theme="settings.ui_settings.theme_mode">
     <!-- Sidebar Overlay for Mobile -->
@@ -31,7 +146,7 @@
     <aside class="sidebar" :class="{ 'collapsed': sidebarCollapsed }">
         <div class="sidebar-header">
             <div class="logo" x-show="!sidebarCollapsed">
-                <img x-show="settings.ui_settings.logo_data" :src="settings.ui_settings.logo_data" alt="Logo" class="logo-img">
+                <img x-show="settings.ui_settings.logo_data" :src="settings.ui_settings.logo_data" alt="Logo" class="logo-img" width="32" height="32">
                 <span class="logo-text" x-text="settings.ui_settings.logo_text || 'JustChat'"></span>
             </div>
             <button class="btn-icon" @click="sidebarCollapsed = !sidebarCollapsed" :title="sidebarCollapsed ? t('expand') : t('collapse')">
@@ -49,7 +164,7 @@
             <span x-text="t('newChat')"></span>
         </button>
         
-        <button class="btn-new-chat-collapsed" @click="createNewChat()" x-show="sidebarCollapsed" :title="t('newChat')">
+        <button class="btn-new-chat-collapsed" @click="createNewChat()" x-show="sidebarCollapsed" :title="t('newChat')" :aria-label="t('newChat')">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 5v14M5 12h14"/>
             </svg>
@@ -127,7 +242,7 @@
             <!-- Welcome -->
             <div class="welcome" x-show="messages.length === 0">
                 <div class="welcome-logo">
-                    <img x-show="settings.ui_settings.logo_data" :src="settings.ui_settings.logo_data" alt="Logo" class="welcome-logo-img">
+                    <img x-show="settings.ui_settings.logo_data" :src="settings.ui_settings.logo_data" alt="Logo" class="welcome-logo-img" width="80" height="80">
                 </div>
                 <h1 x-text="settings.ui_settings.logo_text || 'JustChat'"></h1>
                 <p class="welcome-subtitle" x-text="settings.ui_settings.subtitle || t('defaultSubtitle')"></p>
@@ -162,10 +277,10 @@
                     <div class="message" :class="msg.role">
                         <div class="message-avatar" :class="msg.role">
                             <!-- User avatar -->
-                            <img x-show="msg.role === 'user' && settings.ui_settings.user_avatar" :src="settings.ui_settings.user_avatar" alt="User" style="width:100%; height:100%; object-fit:cover;">
+                            <img x-show="msg.role === 'user' && settings.ui_settings.user_avatar" :src="settings.ui_settings.user_avatar" alt="User" width="36" height="36" style="width:100%; height:100%; object-fit:cover;">
                             <svg x-show="msg.role === 'user' && !settings.ui_settings.user_avatar" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                             <!-- AI avatar -->
-                            <img x-show="msg.role === 'assistant' && settings.ui_settings.assistant_avatar" :src="settings.ui_settings.assistant_avatar" alt="AI" style="width:100%; height:100%; object-fit:cover;">
+                            <img x-show="msg.role === 'assistant' && settings.ui_settings.assistant_avatar" :src="settings.ui_settings.assistant_avatar" alt="AI" width="36" height="36" style="width:100%; height:100%; object-fit:cover;">
                             <span x-show="msg.role === 'assistant' && !settings.ui_settings.assistant_avatar">AI</span>
                         </div>
                         <div class="message-content">
@@ -223,7 +338,7 @@
                 
                 <div class="message assistant" x-show="isGenerating && (!messages.length || messages[messages.length-1].role !== 'assistant')">
                     <div class="message-avatar assistant">
-                        <img x-show="settings.ui_settings.assistant_avatar" :src="settings.ui_settings.assistant_avatar" alt="AI" style="width:100%; height:100%; object-fit:cover;">
+                        <img x-show="settings.ui_settings.assistant_avatar" :src="settings.ui_settings.assistant_avatar" alt="AI" width="36" height="36" style="width:100%; height:100%; object-fit:cover;">
                         <span x-show="!settings.ui_settings.assistant_avatar">AI</span>
                     </div>
                     <div class="message-content">
@@ -238,8 +353,8 @@
             <div class="input-area">
                 <div class="input-container-inner">
                     <div class="uploaded-image-preview" x-show="uploadedImage">
-                        <img :src="uploadedImage ? 'data:image/jpeg;base64,' + uploadedImageBase64 : ''" alt="Preview">
-                        <button class="btn-delete" @click="removeUploadedImage()" style="opacity:1; position:absolute; top:-10px; right:-10px; background:var(--error-color); color:white; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center;">×</button>
+                        <img :src="uploadedImage ? 'data:image/jpeg;base64,' + uploadedImageBase64 : ''" alt="Preview" width="60" height="60">
+                        <button class="btn-delete" @click="removeUploadedImage()" aria-label="Remove image" style="opacity:1; position:absolute; top:-10px; right:-10px; background:var(--error-color); color:white; border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center;">×</button>
                     </div>
                     
                     <!-- Parsed URL Preview -->
@@ -249,7 +364,7 @@
                             <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
                         </svg>
                         <span class="parsed-url-title" x-text="parsedUrlTitle"></span>
-                        <button class="btn-remove-url" @click="removeParsedUrl()">×</button>
+                        <button class="btn-remove-url" @click="removeParsedUrl()" aria-label="Remove URL">×</button>
                     </div>
                     
                     <!-- Attached Document Preview -->
@@ -261,7 +376,7 @@
                             <line x1="16" y1="17" x2="8" y2="17"/>
                         </svg>
                         <span class="attached-doc-name" x-text="attachedDocument?.filename"></span>
-                        <button class="btn-remove-doc" @click="removeAttachedDocument()">×</button>
+                        <button class="btn-remove-doc" @click="removeAttachedDocument()" aria-label="Remove document">×</button>
                     </div>
 
                     <div class="input-wrapper">
@@ -336,7 +451,7 @@
                         </div>
 
                         <!-- Send Button -->
-                        <button class="btn-send" x-show="!isGenerating" @click="sendMessage()" :disabled="!inputMessage.trim()">
+                        <button class="btn-send" x-show="!isGenerating" @click="sendMessage()" :disabled="!inputMessage.trim()" :aria-label="t('send')">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <line x1="22" y1="2" x2="11" y2="13"/>
                                 <polygon points="22 2 15 22 11 13 2 9 22 2"/>
@@ -513,12 +628,12 @@
                         <div class="form-group" style="margin-bottom: 40px;">
                             <label class="form-label" x-text="t('logoName')"></label>
                             <div class="logo-upload-area" style="display:flex; align-items:center; gap:12px; flex-wrap:nowrap;">
-                                <img x-show="settings.ui_settings.logo_data" :src="settings.ui_settings.logo_data" alt="Logo" class="logo-preview" style="width:48px; height:48px; min-width:48px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border-color); flex-shrink:0;">
+                                <img x-show="settings.ui_settings.logo_data" :src="settings.ui_settings.logo_data" alt="Logo" class="logo-preview" width="48" height="48" style="width:48px; height:48px; min-width:48px; border-radius:var(--radius-sm); object-fit:cover; border:1px solid var(--border-color); flex-shrink:0;">
                                 <label class="btn-secondary" style="margin:0; white-space:nowrap; flex-shrink:0;">
                                     <input type="file" @change="handleLogoUpload($event)" accept="image/*" style="display: none;">
                                     <span x-text="t('uploadLogo')"></span>
                                 </label>
-                                <button class="btn-delete" x-show="settings.ui_settings.logo_data" @click="settings.ui_settings.logo_data = ''" style="opacity:1; width:32px; height:32px; border:1px solid var(--border-color); flex-shrink:0;">×</button>
+                                <button class="btn-delete" x-show="settings.ui_settings.logo_data" @click="settings.ui_settings.logo_data = ''" aria-label="Remove logo" style="opacity:1; width:32px; height:32px; border:1px solid var(--border-color); flex-shrink:0;">×</button>
                                 <input type="text" x-model="settings.ui_settings.logo_text" placeholder="JustChat" class="input-minimal" style="flex:1; min-width:0;">
                             </div>
                         </div>
@@ -536,7 +651,7 @@
                                 <!-- User Avatar -->
                                 <div style="display:flex; align-items:center; gap:12px;">
                                     <div class="avatar-preview" style="width:40px; height:40px; border-radius:50%; background:var(--bg-tertiary); overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                        <img x-show="settings.ui_settings.user_avatar" :src="settings.ui_settings.user_avatar" alt="User" style="width:100%; height:100%; object-fit:cover;">
+                                        <img x-show="settings.ui_settings.user_avatar" :src="settings.ui_settings.user_avatar" alt="User" width="40" height="40" style="width:100%; height:100%; object-fit:cover;">
                                         <svg x-show="!settings.ui_settings.user_avatar" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                                     </div>
                                     <label class="btn-secondary" style="margin:0;">
@@ -548,7 +663,7 @@
                                 <!-- AI Avatar -->
                                 <div style="display:flex; align-items:center; gap:12px;">
                                     <div class="avatar-preview" style="width:40px; height:40px; border-radius:50%; background:var(--text-primary); color:var(--bg-primary); overflow:hidden; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
-                                        <img x-show="settings.ui_settings.assistant_avatar" :src="settings.ui_settings.assistant_avatar" alt="AI" style="width:100%; height:100%; object-fit:cover;">
+                                        <img x-show="settings.ui_settings.assistant_avatar" :src="settings.ui_settings.assistant_avatar" alt="AI" width="40" height="40" style="width:100%; height:100%; object-fit:cover;">
                                         <span x-show="!settings.ui_settings.assistant_avatar" style="font-weight:bold; font-size:14px;">AI</span>
                                     </div>
                                     <label class="btn-secondary" style="margin:0;">
@@ -620,6 +735,7 @@
                                 <div class="plugin-card">
                                     <img :src="'https://raw.githubusercontent.com/massif-01/ChatRaw/main/Plugins/Plugin_market/' + plugin.folder + '/icon.png'" 
                                          class="plugin-icon" 
+                                         width="48" height="48"
                                          @error="$el.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect fill=%22%23666%22 width=%2224%22 height=%2224%22 rx=%224%22/></svg>'">
                                     <div class="plugin-info">
                                         <div class="plugin-name" x-text="plugin.name[lang] || plugin.name.en"></div>
@@ -651,6 +767,7 @@
                                 <div class="plugin-card installed">
                                     <img :src="'/api/plugins/' + encodeURIComponent(plugin.id) + '/icon'" 
                                          class="plugin-icon"
+                                         width="48" height="48"
                                          @error="$el.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><rect fill=%22%23666%22 width=%2224%22 height=%2224%22 rx=%224%22/></svg>'">
                                     <div class="plugin-info">
                                         <div class="plugin-name" x-text="plugin.name?.[lang] || plugin.name?.en || plugin.name || plugin.id"></div>

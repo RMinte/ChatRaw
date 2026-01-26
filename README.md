@@ -8,6 +8,7 @@
 
 *Fast, Lightweight, Extensible | 快速、轻量、可扩展*
 
+![Lighthouse Performance](https://img.shields.io/badge/Lighthouse-100%2F100-brightgreen?logo=lighthouse)
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 ![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)
@@ -138,12 +139,16 @@ ChatRaw features a complete **plugin system** to extend functionality:
 
 ## ⚡️ Performance
 
-> **Note**: Performance tests conducted using Google Lighthouse on production deployment
+> **Note**: Performance tests conducted using Google Lighthouse on localhost deployment
 
 |                    Desktop                    |                    Mobile                    |
 | :-------------------------------------------: | :------------------------------------------: |
 |     ![Desktop Performance][perf-desktop]      |     ![Mobile Performance][perf-mobile]       |
 | [📑 Lighthouse Report][perf-desktop-report]   | [📑 Lighthouse Report][perf-mobile-report]   |
+
+**Desktop**: Performance 100 | Accessibility 100 | Best Practices 96 | SEO 91
+
+**Mobile**: Performance 91 | Accessibility 93 | Best Practices 96 | SEO 91
 
 [perf-desktop]: assets/lighthouse-desktop.png
 [perf-mobile]: assets/lighthouse-mobile.png
@@ -455,12 +460,16 @@ ChatRaw 拥有完整的**插件系统**以扩展功能：
 
 ## ⚡️ 性能测试
 
-> **说明**: 使用 Google Lighthouse 对生产环境部署进行性能测试
+> **说明**: 使用 Google Lighthouse 对本地部署进行性能测试
 
 |                    桌面端                     |                    移动端                     |
 | :-------------------------------------------: | :-------------------------------------------: |
 |     ![桌面端性能][perf-desktop]               |     ![移动端性能][perf-mobile]                |
 | [📑 Lighthouse 测试报告][perf-desktop-report] | [📑 Lighthouse 测试报告][perf-mobile-report]  |
+
+**桌面端**: 性能 100 | 无障碍 100 | 最佳做法 96 | SEO 91
+
+**移动端**: 性能 91 | 无障碍 93 | 最佳做法 96 | SEO 91
 
 ---
 

@@ -85,6 +85,7 @@ from fastapi.responses import StreamingResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from pydantic import BaseModel
 import sqlite3
 import math
@@ -1137,6 +1138,9 @@ async def lifespan(app: FastAPI):
     await close_http_session()
 
 app = FastAPI(title="ChatRaw", lifespan=lifespan)
+
+# Add GZip compression middleware for static assets
+app.add_middleware(GZipMiddleware, minimum_size=500)
 
 # Add rate limiting middleware (if enabled)
 if RATE_LIMIT_ENABLED:
@@ -2417,8 +2421,26 @@ async def save_api_key(request: Request):
     except Exception as e:
         return JSONResponse({"success": False, "error": str(e)}, status_code=500)
 
-# Static files - must be last
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+# Custom StaticFiles with caching headers
+class CachedStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope):
+        response = await super().get_response(path, scope)
+        # Add cache headers for versioned static files (js, css with ?v=)
+        if path.endswith(('.js', '.css', '.woff2', '.png', '.jpg', '.ico')):
+            # Long cache for static assets (1 year)
+            response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+        elif path.endswith('.html') or path == '' or path == '/':
+            # No cache for HTML (always revalidate)
+            response.headers['Cache-Control'] = 'no-cache, must-revalidate'
+        return response
+
+# Static files with GZip compression and caching - must be last
+# Note: app.mount() creates a sub-application that bypasses main app middleware
+# So we wrap StaticFiles with GZipMiddleware directly
+from starlette.middleware.gzip import GZipMiddleware as StaticGZip
+static_app = CachedStaticFiles(directory="static", html=True)
+gzipped_static_app = StaticGZip(static_app, minimum_size=500)
+app.mount("/", gzipped_static_app, name="static")
 
 if __name__ == "__main__":
     import uvicorn
