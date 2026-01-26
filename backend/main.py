@@ -1625,11 +1625,13 @@ os.makedirs(PLUGINS_INSTALLED_DIR, exist_ok=True)
 BUNDLED_PLUGINS_DIR = os.path.join(os.path.dirname(__file__), "Plugins", "Plugin_market")
 
 def auto_install_bundled_plugins():
-    """Auto-install bundled plugins that have lib/ directory (offline dependencies)
+    """Auto-copy lib/ directory for installed plugins with offline dependencies
     
     This handles plugins like markdown-enhancer that bundle KaTeX, Mermaid, etc.
     Online installation only downloads main.js/manifest.json/icon.png, not lib/.
     This function ensures lib/ is copied from the bundled version in the Docker image.
+    
+    Note: Does NOT auto-install plugins - only supplements lib/ for already installed plugins.
     """
     if not os.path.exists(BUNDLED_PLUGINS_DIR):
         return
@@ -1647,15 +1649,10 @@ def auto_install_bundled_plugins():
         installed_dir = os.path.join(PLUGINS_INSTALLED_DIR, plugin_id)
         installed_lib = os.path.join(installed_dir, "lib")
         
-        # If plugin is installed but lib/ is missing, copy lib/
+        # Only copy lib/ if plugin is already installed but lib/ is missing
         if os.path.exists(installed_dir) and not os.path.exists(installed_lib):
             shutil.copytree(lib_dir, installed_lib)
             print(f"[Plugins] Auto-installed lib/ for {plugin_id}")
-        
-        # If plugin not installed at all, install the whole plugin
-        elif not os.path.exists(installed_dir):
-            shutil.copytree(bundled_dir, installed_dir)
-            print(f"[Plugins] Auto-installed bundled plugin: {plugin_id}")
 
 # Run auto-install on startup
 auto_install_bundled_plugins()
