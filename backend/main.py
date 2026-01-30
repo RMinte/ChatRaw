@@ -1758,7 +1758,9 @@ def get_installed_plugins() -> List[dict]:
                 
                 # Merge with config
                 plugin_config = config.get("plugins", {}).get(plugin_id, {})
-                manifest["enabled"] = plugin_config.get("enabled", True)
+                # Default to False (disabled) for plugins without explicit config
+                # This prevents auto-enabling of plugins after updates/restarts
+                manifest["enabled"] = plugin_config.get("enabled", False)
                 manifest["settings_values"] = plugin_config.get("settings_values", {})
                 plugins.append(manifest)
             except Exception as e:
