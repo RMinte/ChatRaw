@@ -148,7 +148,7 @@ ChatRaw features a complete **plugin system** to extend functionality:
 
 **Desktop**: Performance 100 | Accessibility 100 | Best Practices 100 | SEO 100
 
-**Mobile**: Performance 100 | Accessibility 100 | Best Practices 100 | SEO 100
+**Mobile**: Performance 96 | Accessibility 93 | Best Practices 100 | SEO 100
 
 [perf-desktop]: assets/lighthouse-desktop.png
 [perf-mobile]: assets/lighthouse-mobile.png
@@ -469,7 +469,7 @@ ChatRaw 拥有完整的**插件系统**以扩展功能：
 
 **桌面端**: 性能 100 | 无障碍 100 | 最佳做法 100 | SEO 100
 
-**移动端**: 性能 100 | 无障碍 100 | 最佳做法 100 | SEO 100
+**移动端**: 性能 96 | 无障碍 93 | 最佳做法 100 | SEO 100
 
 ---
 
