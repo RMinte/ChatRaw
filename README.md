@@ -21,7 +21,7 @@
 
 # English
 
-## 📸 Interface Preview
+## Interface Preview
 
 ### Main Chat Interface
 ![Main Interface](assets/main-interface.png)
@@ -34,29 +34,29 @@
 
 ---
 
-## 🌟 Why ChatRaw?
+## Why ChatRaw?
 
 Many developers, AI hardware vendors, and users just need a simple, lightweight application that can quickly demonstrate their model capabilities. That's why we created ChatRaw - a minimal, ready-to-use chat interface that deploys in seconds. No complex configuration, no heavy dependencies—just a clean, fast AI chat experience.
 
 ---
 
-## 📦 Part 1: Core Features
+## Part 1: Core Features
 
 *Fast, Lightweight, Convenient*
 
 ### Core Highlights
 
-- 🪶 **Ultra Lightweight** - ~60MB memory footprint, optimized binary embedding storage
-- ⚡ **Instant Startup** - Ready in seconds with connection pooling for fast API calls
-- 🎨 **Custom Branding** - Freely customize name, logo, and theme
-- 🔌 **Universal API Support** - Works with any OpenAI-compatible API (Ollama, vLLM, LocalAI, LM Studio, etc.)
-- 📄 **Document Parsing** - Native PDF, DOCX, TXT, MD parsing as chat context
-- 🖼️ **Vision AI Ready** - Multimodal image understanding with auto-compression
-- 🧠 **Thinking Mode** - Support for reasoning models (DeepSeek-R1, Qwen, o1, etc.)
-- 📱 **Responsive Design** - Optimized for desktop, tablet, and mobile
-- 🌍 **Bilingual UI** - English & Chinese with one-click switch
-- 🔒 **Zero Registration** - Settings auto-saved locally
-- 🐳 **One-Click Deploy** - Docker deployment in 30 seconds
+- **Ultra Lightweight** - ~60MB memory footprint, optimized binary embedding storage
+- **Instant Startup** - Ready in seconds with connection pooling for fast API calls
+- **Custom Branding** - Freely customize name, logo, and theme
+- **Universal API Support** - Works with any OpenAI-compatible API (Ollama, vLLM, LocalAI, LM Studio, etc.)
+- **Document Parsing** - Native PDF, DOCX, TXT, MD parsing as chat context
+- **Vision AI Ready** - Multimodal image understanding with auto-compression
+- **Thinking Mode** - Support for reasoning models (DeepSeek-R1, Qwen, o1, etc.)
+- **Responsive Design** - Optimized for desktop, tablet, and mobile
+- **Bilingual UI** - English & Chinese with one-click switch
+- **Zero Registration** - Settings auto-saved locally
+- **One-Click Deploy** - Docker deployment in 30 seconds
 
 ### Key Features
 
@@ -78,7 +78,7 @@ Many developers, AI hardware vendors, and users just need a simple, lightweight 
 
 ---
 
-## 🔌 Part 2: Extension Plugins
+## Part 2: Extension Plugins
 
 *Flexible, Free, Community-Driven*
 
@@ -86,41 +86,41 @@ ChatRaw features a complete **plugin system** to extend functionality:
 
 ### Official Plugins
 
-#### 🧠 Lightweight RAG Demo
+#### Lightweight RAG Demo
 - Knowledge base management and retrieval
 - Embedding model configuration
 - Reranking model optimization
 - Document chunking and vectorization
 
-#### 🔍 Bocha Search
+#### Bocha Search
 - Web search
 - AI-powered intelligent search
 - Agent search mode
 - Semantic reranking
 
-#### 📊 Excel Parser
+#### Excel Parser
 - Support for .xlsx, .xls, .xlsm formats
 - Automatic table recognition
 - One-click install, no configuration needed
 
-#### 📋 CSV Parser
+#### CSV Parser
 - CSV/TSV file parsing
 - Multiple output formats
 - Lightweight implementation
 
-#### 🌐 Tavily Search
+#### Tavily Search
 - Web search with AI-generated answers
 - Advanced search (basic/advanced/fast/ultra-fast)
 - Image search and topic filtering
 - Time range and domain control
 
-#### 🔄 Multi-Model Manager
+#### Multi-Model Manager
 - Manage multiple AI model configurations
 - Quick switching between models
 - Backup and auto-restore original config
 - Display names and activation toggles
 
-#### ✨ Markdown Renderer Plus
+#### Markdown Renderer Plus
 - KaTeX math formulas ($...$ and $$...$$)
 - Mermaid diagrams (flowcharts, sequence, etc.)
 - Code copy buttons for all code blocks
@@ -133,11 +133,11 @@ ChatRaw features a complete **plugin system** to extend functionality:
 - Custom settings UI
 - One-click packaging and distribution
 
-📖 **Plugin Development Guide**: [Plugins/README.md](Plugins/README.md)
+**Plugin Development Guide**: [Plugins/README.md](Plugins/README.md)
 
 ---
 
-## ⚡️ Performance
+## Performance
 
 > **Note**: Performance tests conducted using Google Lighthouse on localhost deployment
 
@@ -157,7 +157,7 @@ ChatRaw features a complete **plugin system** to extend functionality:
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Option 1: Docker (Recommended)
 
@@ -197,11 +197,11 @@ Access: http://localhost:51111
 
 ---
 
-## 🐳 Docker Multi-Platform Support
+## Docker Multi-Platform Support
 
 Supports the following platforms:
-- ✅ linux/amd64 (Intel/AMD x86_64)
-- ✅ linux/arm64 (Apple Silicon M-series, ARM64 servers, Raspberry Pi 4/5)
+- linux/amd64 (Intel/AMD x86_64)
+- linux/arm64 (Apple Silicon M-series, ARM64 servers, Raspberry Pi 4/5)
 
 ```bash
 # Docker Hub
@@ -213,7 +213,7 @@ docker pull ghcr.io/massif-01/chatraw:latest
 
 ---
 
-## 🔄 Update Guide
+## Update Guide
 
 ### Updating to v2.0.0
 
@@ -250,14 +250,14 @@ python main.py
 ```
 
 **Important Changes in v2.0.0:**
-- ⚠️ RAG functionality has been moved to a plugin
+- RAG functionality has been moved to a plugin
 - Install the "Lightweight RAG Demo" plugin from Plugin Market if you need RAG features
 - Default theme changed to light mode (can be changed in Settings)
 - All chat history and settings are automatically preserved
 
 ---
 
-## 🛠️ Configuration
+## Configuration
 
 ### Initial Setup
 
@@ -287,7 +287,7 @@ In **Settings** → **Interface**, you can customize:
 
 ---
 
-## 📝 Use Cases
+## Use Cases
 
 - **Developers**: Quickly test and demo your AI models
 - **AI Hardware Vendors**: Showcase device capabilities with a ready-to-use interface
@@ -297,7 +297,7 @@ In **Settings** → **Interface**, you can customize:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please submit issues or pull requests.
 
@@ -311,7 +311,7 @@ Contributions are welcome! Please submit issues or pull requests.
 
 ---
 
-## 📄 License
+## License
 
 Apache License 2.0
 
@@ -319,18 +319,12 @@ Apache License 2.0
 
 ---
 
-## 🔗 Links
+## Links
 
-- 🌐 **GitHub**: https://github.com/massif-01/ChatRaw
-- 🐋 **Docker Hub**: https://hub.docker.com/r/massif01/chatraw
-- 📖 **Plugin Development**: [Plugins/README.md](Plugins/README.md)
-- 🐛 **Issue Tracker**: https://github.com/massif-01/ChatRaw/issues
-
----
-
-## ⭐ Star History
-
-If you find ChatRaw useful, please give it a star! ⭐
+- **GitHub**: https://github.com/massif-01/ChatRaw
+- **Docker Hub**: https://hub.docker.com/r/massif01/chatraw
+- **Plugin Development**: [Plugins/README.md](Plugins/README.md)
+- **Issue Tracker**: https://github.com/massif-01/ChatRaw/issues
 
 ---
 
@@ -342,7 +336,7 @@ If you find ChatRaw useful, please give it a star! ⭐
 
 # 中文
 
-## 📸 界面展示
+## 界面展示
 
 ### 主聊天界面
 ![主界面](assets/main-interface.png)
@@ -355,29 +349,29 @@ If you find ChatRaw useful, please give it a star! ⭐
 
 ---
 
-## 🌟 为什么选择 ChatRaw？
+## 为什么选择 ChatRaw？
 
 很多开发者、AI 硬件厂商，甚至是用户只需要一个简洁轻量，能够快速展示自己模型使用的应用，于是我们提供了极简、开箱即用的聊天界面，秒级部署。无需复杂配置，无重型依赖——只需一个干净、快速的 AI 聊天体验。
 
 ---
 
-## 📦 第一部分：核心功能
+## 第一部分：核心功能
 
 *快速、轻量、便捷*
 
 ### 核心亮点
 
-- 🪶 **极致轻量** - 内存占用约 60MB，优化的二进制向量存储
-- ⚡ **极速启动** - 秒级启动，连接池加速 API 调用
-- 🎨 **自定义品牌** - 自由定制名称、Logo 和主题
-- 🔌 **通用 API 支持** - 兼容任意 OpenAI 兼容 API（Ollama、vLLM、LocalAI、LM Studio 等）
-- 📄 **文档解析** - 原生支持 PDF、DOCX、TXT、MD 解析作为聊天上下文
-- 🖼️ **视觉 AI 就绪** - 多模态图片理解，自动压缩
-- 🧠 **思考模式** - 支持推理模型（DeepSeek-R1、Qwen、o1 等）
-- 📱 **响应式设计** - 完美适配桌面、平板和移动设备
-- 🌍 **双语界面** - 中英文一键切换
-- 🔒 **零注册** - 设置本地自动保存
-- 🐳 **一键部署** - Docker 30 秒部署
+- **极致轻量** - 内存占用约 60MB，优化的二进制向量存储
+- **极速启动** - 秒级启动，连接池加速 API 调用
+- **自定义品牌** - 自由定制名称、Logo 和主题
+- **通用 API 支持** - 兼容任意 OpenAI 兼容 API（Ollama、vLLM、LocalAI、LM Studio 等）
+- **文档解析** - 原生支持 PDF、DOCX、TXT、MD 解析作为聊天上下文
+- **视觉 AI 就绪** - 多模态图片理解，自动压缩
+- **思考模式** - 支持推理模型（DeepSeek-R1、Qwen、o1 等）
+- **响应式设计** - 完美适配桌面、平板和移动设备
+- **双语界面** - 中英文一键切换
+- **零注册** - 设置本地自动保存
+- **一键部署** - Docker 30 秒部署
 
 ### 主要功能
 
@@ -399,7 +393,7 @@ If you find ChatRaw useful, please give it a star! ⭐
 
 ---
 
-## 🔌 第二部分：扩展插件
+## 第二部分：扩展插件
 
 *灵活、自由、社区驱动*
 
@@ -407,41 +401,41 @@ ChatRaw 拥有完整的**插件系统**以扩展功能：
 
 ### 官方插件
 
-#### 🧠 轻量 RAG 演示
+#### 轻量 RAG 演示
 - 知识库管理与检索
 - 嵌入模型配置
 - 重排模型优化
 - 文档切片与向量化
 
-#### 🔍 博查搜索
+#### 博查搜索
 - Web 通搜
 - AI 智能搜索
 - Agent 搜索模式
 - 语义重排
 
-#### 📊 Excel 解析器
+#### Excel 解析器
 - 支持 .xlsx, .xls, .xlsm 格式
 - 自动表格识别
 - 一键安装，无需配置
 
-#### 📋 CSV 解析器
+#### CSV 解析器
 - CSV/TSV 文件解析
 - 多种输出格式
 - 轻量级实现
 
-#### 🌐 Tavily 搜索
+#### Tavily 搜索
 - Web 搜索并提供 AI 生成答案
 - 高级搜索（基础/高级/快速/超快速）
 - 图片搜索和主题筛选
 - 时间范围与域名控制
 
-#### 🔄 多模型管理
+#### 多模型管理
 - 管理多个 AI 模型配置
 - 快速切换模型使用
 - 备份与自动恢复原配置
 - 显示名称与激活开关
 
-#### ✨ Markdown 渲染增强
+#### Markdown 渲染增强
 - KaTeX 数学公式（$...$ 和 $$...$$）
 - Mermaid 图表（流程图、时序图等）
 - 代码块复制按钮
@@ -458,7 +452,7 @@ ChatRaw 拥有完整的**插件系统**以扩展功能：
 
 ---
 
-## ⚡️ 性能测试
+## 性能测试
 
 > **说明**: 使用 Google Lighthouse 对本地部署进行性能测试
 
@@ -473,7 +467,7 @@ ChatRaw 拥有完整的**插件系统**以扩展功能：
 
 ---
 
-## 🚀 快速开始
+## 快速开始
 
 ### 方式一：Docker（推荐）
 
@@ -513,11 +507,11 @@ python main.py
 
 ---
 
-## 🐳 Docker 多平台支持
+## Docker 多平台支持
 
 支持以下平台：
-- ✅ linux/amd64 (Intel/AMD x86_64)
-- ✅ linux/arm64 (Apple Silicon M 系列、ARM64 服务器、树莓派 4/5)
+- linux/amd64 (Intel/AMD x86_64)
+- linux/arm64 (Apple Silicon M 系列、ARM64 服务器、树莓派 4/5)
 
 ```bash
 # Docker Hub
@@ -529,7 +523,7 @@ docker pull ghcr.io/massif-01/chatraw:latest
 
 ---
 
-## 🔄 更新指南
+## 更新指南
 
 ### 升级到 v2.0.0
 
@@ -566,14 +560,14 @@ python main.py
 ```
 
 **v2.0.0 重要变更：**
-- ⚠️ RAG 功能已迁移至插件
+- RAG 功能已迁移至插件
 - 如需使用 RAG 功能，请从插件市场安装"轻量 RAG 演示"插件
 - 默认主题改为亮色模式（可在设置中更改）
 - 所有对话历史和设置会自动保留
 
 ---
 
-## 🛠️ 配置说明
+## 配置说明
 
 ### 初始设置
 
@@ -603,7 +597,7 @@ python main.py
 
 ---
 
-## 📝 使用场景
+## 使用场景
 
 - **开发者**：快速测试和演示你的 AI 模型
 - **AI 硬件厂商**：用即插即用的界面展示设备能力
@@ -613,7 +607,7 @@ python main.py
 
 ---
 
-## 🤝 贡献
+## 贡献
 
 欢迎贡献！请提交 issue 或 pull request。
 
@@ -627,7 +621,7 @@ python main.py
 
 ---
 
-## 📄 开源协议
+## 开源协议
 
 Apache License 2.0
 
@@ -635,15 +629,9 @@ Apache License 2.0
 
 ---
 
-## 🔗 相关链接
+## 相关链接
 
-- 🌐 **GitHub**: https://github.com/massif-01/ChatRaw
-- 🐋 **Docker Hub**: https://hub.docker.com/r/massif01/chatraw
-- 📖 **插件开发**: [Plugins/README.md](Plugins/README.md)
-- 🐛 **问题反馈**: https://github.com/massif-01/ChatRaw/issues
-
----
-
-## ⭐ Star 历史
-
-如果你觉得 ChatRaw 有用，请给我们一个 Star！⭐
+- **GitHub**: https://github.com/massif-01/ChatRaw
+- **Docker Hub**: https://hub.docker.com/r/massif01/chatraw
+- **插件开发**: [Plugins/README.md](Plugins/README.md)
+- **问题反馈**: https://github.com/massif-01/ChatRaw/issues
