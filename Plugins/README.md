@@ -88,7 +88,7 @@ your-plugin/
 | `main` | string | Yes | Main JavaScript file |
 | `type` | string | Yes | Plugin type (see below) |
 | `hooks` | array | Yes | List of hooks the plugin uses |
-| `fileTypes` | array | No | File extensions for document_parser type |
+| `fileTypes` | array | No | File extensions for document_parser type. When plugin is enabled, these extensions are automatically added to the file upload dialog. |
 | `dependencies` | object | No | External JS libraries (name: CDN URL) |
 | `settings` | array | No | Plugin settings schema (for standard settings UI) |
 | `customSettings` | boolean | No | Set to `true` for custom settings UI |
@@ -746,7 +746,7 @@ your-plugin/
 | `main` | string | 是 | 主 JavaScript 文件 |
 | `type` | string | 是 | 插件类型（见下表） |
 | `hooks` | array | 是 | 插件使用的钩子列表 |
-| `fileTypes` | array | 否 | document_parser 类型的文件扩展名 |
+| `fileTypes` | array | 否 | document_parser 类型的文件扩展名。插件启用后，这些扩展名会自动添加到文件上传对话框中。 |
 | `dependencies` | object | 否 | 外部 JS 库（名称: CDN URL） |
 | `settings` | array | 否 | 插件设置架构（用于标准设置 UI） |
 | `customSettings` | boolean | 否 | 设为 `true` 启用自定义设置 UI |

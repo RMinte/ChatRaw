@@ -1168,6 +1168,21 @@ function app() {
             this.attachedDocument = null;
         },
         
+        // Get document accept types (base types + plugin types)
+        getDocumentAcceptTypes() {
+            // Base supported file types
+            const baseTypes = ['.pdf', '.docx', '.doc', '.txt', '.md'];
+            
+            // Collect fileTypes from enabled plugins
+            const pluginTypes = this.installedPlugins
+                .filter(p => p.enabled && p.fileTypes)
+                .flatMap(p => p.fileTypes);
+            
+            // Merge and deduplicate
+            const allTypes = [...new Set([...baseTypes, ...pluginTypes])];
+            return allTypes.join(',');
+        },
+        
         // Toggle URL input popup
         toggleUrlInput() {
             this.showUrlInput = !this.showUrlInput;

@@ -348,7 +348,7 @@
                                 <i class="ri-image-line"></i>
                             </label>
                             <label class="btn-tool" :title="t('uploadDocument')" :class="{ 'active': attachedDocument }" style="z-index: 10; position: relative;">
-                                <input type="file" @change="handleDocumentUpload($event)" accept=".pdf,.docx,.doc,.txt,.md" style="display: none;" :disabled="isUploadingDocument">
+                                <input type="file" @change="handleDocumentUpload($event)" :accept="getDocumentAcceptTypes()" style="display: none;" :disabled="isUploadingDocument">
                                 <i class="ri-file-text-line" x-show="!isUploadingDocument"></i>
                                 <i class="ri-loader-4-line spin" x-show="isUploadingDocument"></i>
                             </label>
