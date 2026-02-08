@@ -343,10 +343,10 @@ For complex plugins that need full control over settings UI, use `customSettings
             const result = await verifyApiKey(input.value.trim());
             
             if (result.success) {
-                status.innerHTML = `<span style="color:var(--success-color);">✓ ${t('verifySuccess')}</span>`;
+                status.innerHTML = `<span style="color:var(--success-color);">${t('verifySuccess')}</span>`;
                 input.value = '';
             } else {
-                status.innerHTML = `<span style="color:var(--error-color);">✗ ${t('verifyFailed')}</span>`;
+                status.innerHTML = `<span style="color:var(--error-color);">${t('verifyFailed')}</span>`;
             }
             btn.textContent = t('verify');
         },
@@ -651,10 +651,10 @@ To distribute your plugin:
    - **Direct Download**: Host on GitHub releases or your website
 
 5. **Common issues**:
-   - ❌ Zip contains nested folders: `your-plugin.zip/your-plugin/your-plugin/manifest.json`
-   - ✅ Correct structure: `your-plugin.zip/your-plugin/manifest.json`
-   - ❌ Files outside plugin folder
-   - ✅ All files inside single plugin folder
+   - Wrong: Zip contains nested folders: `your-plugin.zip/your-plugin/your-plugin/manifest.json`
+   - Correct structure: `your-plugin.zip/your-plugin/manifest.json`
+   - Wrong: Files outside plugin folder
+   - Correct: All files inside single plugin folder
 
 ### Advanced: Local Dependencies and CSS Loading
 
@@ -747,13 +747,13 @@ ChatRawPlugin.hooks.register('after_receive', {
 11. **Always `await` async operations**: When calling async functions (like `saveSettings()`) in event handlers, always use `await` to ensure operations complete before proceeding:
 
 ```javascript
-// ❌ Wrong - data may not be saved
+// Wrong - data may not be saved
 button.onclick = () => {
     saveSettings();  // Missing await!
     renderUI();
 };
 
-// ✅ Correct - wait for save to complete
+// Correct - wait for save to complete
 button.onclick = async () => {
     await saveSettings();
     renderUI();
@@ -811,12 +811,12 @@ Watch out for these common mistakes:
 1. **Wrong IIFE pattern**: Always use the parameter-passing pattern for cleaner code:
 
 ```javascript
-// ❌ Wrong - direct global access
+// Wrong - direct global access
 (function() {
     window.ChatRawPlugin.hooks.register(...);
 })();
 
-// ✅ Correct - pass as parameter
+// Correct - pass as parameter
 (function(ChatRaw) {
     if (!ChatRaw || !ChatRaw.hooks) {
         console.error('[YourPlugin] ChatRawPlugin not available');
@@ -829,20 +829,20 @@ Watch out for these common mistakes:
 2. **Wrong API method names**: Use the correct method names:
 
 ```javascript
-// ❌ Wrong - getLang doesn't exist
+// Wrong - getLang doesn't exist
 const lang = ChatRaw.utils?.getLang?.() || 'en';
 
-// ✅ Correct - use getLanguage
+// Correct - use getLanguage
 const lang = ChatRaw.utils?.getLanguage?.() || 'en';
 ```
 
 3. **Missing optional chaining**: Always use `?.` for potentially undefined methods:
 
 ```javascript
-// ❌ Risky - may throw error if utils is undefined
+// Risky - may throw error if utils is undefined
 ChatRaw.utils.showToast('Message', 'info');
 
-// ✅ Safe - handles undefined gracefully
+// Safe - handles undefined gracefully
 ChatRaw.utils?.showToast?.('Message', 'info');
 ```
 
@@ -851,12 +851,12 @@ ChatRaw.utils?.showToast?.('Message', 'info');
 5. **Icon format for toolbar buttons**: Must use RemixIcon format (`ri-xxx-line` or `ri-xxx-fill`):
 
 ```javascript
-// ❌ Wrong - will be rejected
+// Wrong - will be rejected
 icon: 'fa-home'        // FontAwesome
 icon: 'mdi-home'       // Material Design Icons
 icon: 'icon-home'      // Custom class
 
-// ✅ Correct - RemixIcon format
+// Correct - RemixIcon format
 icon: 'ri-home-line'   // Line style
 icon: 'ri-home-fill'   // Fill style
 ```
@@ -864,12 +864,12 @@ icon: 'ri-home-fill'   // Fill style
 6. **Registering toolbar buttons in hook callbacks**: Buttons must be registered immediately when the script loads, not inside hooks:
 
 ```javascript
-// ❌ Wrong - hook callback runs after _currentLoadingPlugin is cleared
+// Wrong - hook callback runs after _currentLoadingPlugin is cleared
 ChatRaw.hooks.register('before_send', () => {
     ChatRaw.ui.registerToolbarButton({ ... });  // Will fail!
 });
 
-// ✅ Correct - register immediately in IIFE
+// Correct - register immediately in IIFE
 (function(ChatRaw) {
     // Register buttons here, during script load
     ChatRaw.ui.registerToolbarButton({ ... });  // Works!
@@ -1219,10 +1219,10 @@ your-plugin/
             const result = await verifyApiKey(input.value.trim());
             
             if (result.success) {
-                status.innerHTML = `<span style="color:var(--success-color);">✓ ${t('verifySuccess')}</span>`;
+                status.innerHTML = `<span style="color:var(--success-color);">${t('verifySuccess')}</span>`;
                 input.value = '';
             } else {
-                status.innerHTML = `<span style="color:var(--error-color);">✗ ${t('verifyFailed')}</span>`;
+                status.innerHTML = `<span style="color:var(--error-color);">${t('verifyFailed')}</span>`;
             }
             btn.textContent = t('verify');
         },
@@ -1527,10 +1527,10 @@ const allData = ChatRaw.storage.getAll(PLUGIN_ID);
    - **直接下载**：托管在 GitHub releases 或你的网站
 
 5. **常见问题**：
-   - ❌ zip 包含嵌套文件夹：`your-plugin.zip/your-plugin/your-plugin/manifest.json`
-   - ✅ 正确结构：`your-plugin.zip/your-plugin/manifest.json`
-   - ❌ 文件在插件文件夹外
-   - ✅ 所有文件在单个插件文件夹内
+   - 错误：zip 包含嵌套文件夹：`your-plugin.zip/your-plugin/your-plugin/manifest.json`
+   - 正确结构：`your-plugin.zip/your-plugin/manifest.json`
+   - 错误：文件在插件文件夹外
+   - 正确：所有文件在单个插件文件夹内
 
 ### 进阶：本地依赖和 CSS 加载
 
@@ -1623,13 +1623,13 @@ ChatRawPlugin.hooks.register('after_receive', {
 11. **异步操作必须 `await`**：在事件处理函数中调用异步函数（如 `saveSettings()`）时，必须使用 `await` 确保操作完成后再继续：
 
 ```javascript
-// ❌ 错误 - 数据可能未保存
+// 错误 - 数据可能未保存
 button.onclick = () => {
     saveSettings();  // 缺少 await！
     renderUI();
 };
 
-// ✅ 正确 - 等待保存完成
+// 正确 - 等待保存完成
 button.onclick = async () => {
     await saveSettings();
     renderUI();
@@ -1687,12 +1687,12 @@ button.onclick = async () => {
 1. **错误的 IIFE 模式**：始终使用参数传递模式以获得更清晰的代码：
 
 ```javascript
-// ❌ 错误 - 直接访问全局变量
+// 错误 - 直接访问全局变量
 (function() {
     window.ChatRawPlugin.hooks.register(...);
 })();
 
-// ✅ 正确 - 作为参数传递
+// 正确 - 作为参数传递
 (function(ChatRaw) {
     if (!ChatRaw || !ChatRaw.hooks) {
         console.error('[YourPlugin] ChatRawPlugin 不可用');
@@ -1705,20 +1705,20 @@ button.onclick = async () => {
 2. **错误的 API 方法名**：请使用正确的方法名：
 
 ```javascript
-// ❌ 错误 - getLang 方法不存在
+// 错误 - getLang 方法不存在
 const lang = ChatRaw.utils?.getLang?.() || 'en';
 
-// ✅ 正确 - 使用 getLanguage
+// 正确 - 使用 getLanguage
 const lang = ChatRaw.utils?.getLanguage?.() || 'en';
 ```
 
 3. **缺少可选链操作符**：对于可能未定义的方法，始终使用 `?.`：
 
 ```javascript
-// ❌ 有风险 - 如果 utils 未定义会报错
+// 有风险 - 如果 utils 未定义会报错
 ChatRaw.utils.showToast('消息', 'info');
 
-// ✅ 安全 - 优雅处理未定义情况
+// 安全 - 优雅处理未定义情况
 ChatRaw.utils?.showToast?.('消息', 'info');
 ```
 
@@ -1727,12 +1727,12 @@ ChatRaw.utils?.showToast?.('消息', 'info');
 5. **工具栏按钮图标格式**：必须使用 RemixIcon 格式（`ri-xxx-line` 或 `ri-xxx-fill`）：
 
 ```javascript
-// ❌ 错误 - 会被拒绝
+// 错误 - 会被拒绝
 icon: 'fa-home'        // FontAwesome
 icon: 'mdi-home'       // Material Design Icons
 icon: 'icon-home'      // 自定义类名
 
-// ✅ 正确 - RemixIcon 格式
+// 正确 - RemixIcon 格式
 icon: 'ri-home-line'   // 线条样式
 icon: 'ri-home-fill'   // 填充样式
 ```
@@ -1740,12 +1740,12 @@ icon: 'ri-home-fill'   // 填充样式
 6. **在 hook 回调中注册工具栏按钮**：按钮必须在脚本加载时立即注册，不能在 hook 中注册：
 
 ```javascript
-// ❌ 错误 - hook 回调执行时 _currentLoadingPlugin 已被清除
+// 错误 - hook 回调执行时 _currentLoadingPlugin 已被清除
 ChatRaw.hooks.register('before_send', () => {
     ChatRaw.ui.registerToolbarButton({ ... });  // 会失败！
 });
 
-// ✅ 正确 - 在 IIFE 中立即注册
+// 正确 - 在 IIFE 中立即注册
 (function(ChatRaw) {
     // 在这里注册按钮，脚本加载期间
     ChatRaw.ui.registerToolbarButton({ ... });  // 正常工作！

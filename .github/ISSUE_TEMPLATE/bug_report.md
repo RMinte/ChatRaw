@@ -6,30 +6,30 @@ labels: bug
 assignees: ''
 ---
 
-## 🐛 Bug Description
+## Bug Description
 
 <!-- A clear and concise description of what the bug is -->
 
-## 📋 Steps to Reproduce
+## Steps to Reproduce
 
 1. Go to '...'
 2. Click on '...'
 3. Scroll down to '...'
 4. See error
 
-## ✅ Expected Behavior
+## Expected Behavior
 
 <!-- What you expected to happen -->
 
-## ❌ Actual Behavior
+## Actual Behavior
 
 <!-- What actually happened -->
 
-## 📸 Screenshots
+## Screenshots
 
 <!-- If applicable, add screenshots to help explain your problem -->
 
-## 🖥️ Environment
+## Environment
 
 **Desktop/Mobile**:
 - OS: [e.g. Windows 10, macOS 14, iOS 17]
@@ -41,7 +41,7 @@ assignees: ''
 - [ ] Source code
 - [ ] Other: _____
 
-## 📝 Logs
+## Logs
 
 <!-- If applicable, paste relevant error logs -->
 
@@ -49,11 +49,11 @@ assignees: ''
 Paste logs here
 ```
 
-## 🔍 Additional Context
+## Additional Context
 
 <!-- Add any other context about the problem here -->
 
-## ✔️ Checklist
+## Checklist
 
 - [ ] I have searched existing issues to ensure this is not a duplicate
 - [ ] I have provided all requested information

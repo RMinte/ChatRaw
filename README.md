@@ -119,7 +119,7 @@ ChatRaw features a complete **plugin system** to extend functionality:
 |                    Desktop                    |                    Mobile                    |
 | :-------------------------------------------: | :------------------------------------------: |
 |     ![Desktop Performance][perf-desktop]      |     ![Mobile Performance][perf-mobile]       |
-| [📑 Lighthouse Report][perf-desktop-report]   | [📑 Lighthouse Report][perf-mobile-report]   |
+| [Lighthouse Report][perf-desktop-report]   | [Lighthouse Report][perf-mobile-report]   |
 
 **Desktop**: Performance 100 | Accessibility 100 | Best Practices 100 | SEO 100
 
@@ -397,7 +397,7 @@ ChatRaw 拥有完整的**插件系统**以扩展功能：
 - 自定义设置界面
 - 一键打包分发
 
-📖 **插件开发指南**: [Plugins/README.md](Plugins/README.md)
+**插件开发指南**: [Plugins/README.md](Plugins/README.md)
 
 ---
 
@@ -408,7 +408,7 @@ ChatRaw 拥有完整的**插件系统**以扩展功能：
 |                    桌面端                     |                    移动端                     |
 | :-------------------------------------------: | :-------------------------------------------: |
 |     ![桌面端性能][perf-desktop]               |     ![移动端性能][perf-mobile]                |
-| [📑 Lighthouse 测试报告][perf-desktop-report] | [📑 Lighthouse 测试报告][perf-mobile-report]  |
+| [Lighthouse 测试报告][perf-desktop-report] | [Lighthouse 测试报告][perf-mobile-report]  |
 
 **桌面端**: 性能 100 | 无障碍 100 | 最佳做法 100 | SEO 100
 
