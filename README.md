@@ -136,23 +136,51 @@ ChatRaw features a complete **plugin system** to extend functionality:
 
 ### Option 1: Docker (Recommended)
 
+**Prerequisites**: [Docker](https://docs.docker.com/get-docker/) installed.
+
+Docker images are published to **Docker Hub** and **GitHub Container Registry**. To get the **latest** image (not a cached old one), always run `docker pull` with the tag you want before creating the container. Use `:latest` for the current release, or a version tag (e.g. `v2.0.7`) from [Releases](https://github.com/massif-01/ChatRaw/releases) for a fixed version.
+
+**Supported platforms**: linux/amd64 (Intel/AMD), linux/arm64 (Apple Silicon, Raspberry Pi 4/5).
+
+---
+
+#### Method A: `docker run` (no project files)
+
+Run these commands in a terminal. Data is stored in a Docker volume `chatraw-data`.
+
 ```bash
-# Pull image
+# 1. Pull the latest image (run this again whenever you want to update)
 docker pull massif01/chatraw:latest
 
-# Run container
-docker run -d -p 51111:51111 -v chatraw-data:/app/data massif01/chatraw:latest
+# 2. Start the container (creates volume chatraw-data if needed)
+docker run -d -p 51111:51111 -v chatraw-data:/app/data --name chatraw massif01/chatraw:latest
 ```
 
-Or use docker-compose:
+- **Access**: http://localhost:51111  
+- **To access LAN services** (e.g. local LLM at 192.168.x.x), use host network instead:
+  ```bash
+  docker run -d --network host -v chatraw-data:/app/data -e PORT=51111 --name chatraw massif01/chatraw:latest
+  ```
+
+---
+
+#### Method B: docker-compose (host network, good for LAN)
+
+Clone the project and run from the repo root. The included `docker-compose.yml` uses host network so the app can reach LAN services (e.g. 192.168.x.x) without extra config.
 
 ```bash
-docker-compose up -d
+# 1. Clone the repository
+git clone https://github.com/massif-01/ChatRaw.git
+cd ChatRaw
+
+# 2. Pull the latest image and start the service
+docker compose pull
+docker compose up -d
 ```
 
-> **Note**: To access LAN services (e.g., local LLM on 192.168.x.x), use `docker-compose` or add `--network host` to docker run.
+- **Access**: http://localhost:51111 (or http://\<your-ip\>:51111 from other devices).
 
-Access: http://localhost:51111
+---
 
 ### Option 2: From Source
 
@@ -170,54 +198,47 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Access: http://localhost:51111
+**Access**: http://localhost:51111
 
 ---
 
-## Docker Multi-Platform Support
+## Docker image sources
 
-Supports the following platforms:
-- linux/amd64 (Intel/AMD x86_64)
-- linux/arm64 (Apple Silicon M-series, ARM64 servers, Raspberry Pi 4/5)
+| Source | Pull command |
+|--------|----------------|
+| Docker Hub | `docker pull massif01/chatraw:latest` |
+| GitHub Container Registry | `docker pull ghcr.io/massif-01/chatraw:latest` |
 
-```bash
-# Docker Hub
-docker pull massif01/chatraw:latest
-
-# GitHub Container Registry
-docker pull ghcr.io/massif-01/chatraw:latest
-```
+Use the same tag for a specific version, e.g. `massif01/chatraw:v2.0.7` (see [Releases](https://github.com/massif-01/ChatRaw/releases)).
 
 ---
 
 ## Update Guide
 
-### Updating to v2.0.0
+### Docker (docker run)
 
-If you're upgrading from v1.x:
-
-**Docker Users:**
 ```bash
-# Stop and remove old container
+# Stop and remove the current container
 docker stop chatraw && docker rm chatraw
 
-# Pull new image
+# Pull the latest image (important: otherwise the old image is reused)
 docker pull massif01/chatraw:latest
 
-# Run new container (data persists in volume)
-docker run -d -p 51111:51111 -v chatraw-data:/app/data massif01/chatraw:latest
+# Start again (same volume keeps your data)
+docker run -d -p 51111:51111 -v chatraw-data:/app/data --name chatraw massif01/chatraw:latest
 ```
 
-Or with docker-compose:
+### Docker Compose
+
 ```bash
-# Pull new image
-docker-compose pull
-
-# Restart services
-docker-compose up -d
+cd ChatRaw
+git pull origin main
+docker compose pull
+docker compose up -d
 ```
 
-**Source Code Users:**
+### From Source
+
 ```bash
 cd ChatRaw
 git pull origin main
@@ -226,11 +247,11 @@ pip install -r requirements.txt --upgrade
 python main.py
 ```
 
-**Important Changes in v2.0.0:**
-- RAG functionality has been moved to a plugin
-- Install the "Lightweight RAG Demo" plugin from Plugin Market if you need RAG features
-- Default theme changed to light mode (can be changed in Settings)
-- All chat history and settings are automatically preserved
+### Important changes in v2.0.0 (if upgrading from v1.x)
+
+- RAG is now a plugin: install **Lightweight RAG Demo** from Plugin Market if you need it.
+- Default theme is light (changeable in Settings).
+- Chat history and settings are preserved.
 
 ---
 
@@ -420,23 +441,51 @@ ChatRaw 拥有完整的**插件系统**以扩展功能：
 
 ### 方式一：Docker（推荐）
 
+**前置条件**：已安装 [Docker](https://docs.docker.com/get-docker/)。
+
+镜像发布在 **Docker Hub** 和 **GitHub Container Registry**。若想用**最新**镜像（避免用到本地缓存的旧镜像），在创建容器前请先执行一次 `docker pull`。使用 `:latest` 表示当前最新版本；如需固定版本，可使用 [Releases](https://github.com/massif-01/ChatRaw/releases) 中的版本号标签（如 `v2.0.7`）。
+
+**支持平台**：linux/amd64（Intel/AMD）、linux/arm64（Apple Silicon、树莓派 4/5）。
+
+---
+
+#### 方式 A：`docker run`（无需项目文件）
+
+在终端依次执行。数据保存在 Docker 卷 `chatraw-data` 中。
+
 ```bash
-# 拉取镜像
+# 1. 拉取最新镜像（每次要更新时重新执行此命令）
 docker pull massif01/chatraw:latest
 
-# 运行容器
-docker run -d -p 51111:51111 -v chatraw-data:/app/data massif01/chatraw:latest
+# 2. 启动容器（若卷 chatraw-data 不存在会自动创建）
+docker run -d -p 51111:51111 -v chatraw-data:/app/data --name chatraw massif01/chatraw:latest
 ```
 
-或使用 docker-compose：
+- **访问**：http://localhost:51111  
+- **如需访问局域网服务**（例如本机 LLM 在 192.168.x.x），可改用 host 网络：
+  ```bash
+  docker run -d --network host -v chatraw-data:/app/data -e PORT=51111 --name chatraw massif01/chatraw:latest
+  ```
+
+---
+
+#### 方式 B：docker-compose（host 网络，适合访问局域网）
+
+克隆项目后在仓库根目录执行。项目内的 `docker-compose.yml` 使用 host 网络，可直接访问局域网服务（如 192.168.x.x），无需额外配置。
 
 ```bash
-docker-compose up -d
+# 1. 克隆仓库
+git clone https://github.com/massif-01/ChatRaw.git
+cd ChatRaw
+
+# 2. 拉取最新镜像并启动服务
+docker compose pull
+docker compose up -d
 ```
 
-> **提示**：如需访问局域网服务（如本地 LLM 192.168.x.x），请使用 `docker-compose` 或添加 `--network host` 参数。
+- **访问**：http://localhost:51111（或本机 IP http://\<你的IP\>:51111 从其他设备访问）。
 
-访问：http://localhost:51111
+---
 
 ### 方式二：源码部署
 
@@ -454,54 +503,47 @@ pip install -r requirements.txt
 python main.py
 ```
 
-访问：http://localhost:51111
+**访问**：http://localhost:51111
 
 ---
 
-## Docker 多平台支持
+## Docker 镜像来源
 
-支持以下平台：
-- linux/amd64 (Intel/AMD x86_64)
-- linux/arm64 (Apple Silicon M 系列、ARM64 服务器、树莓派 4/5)
+| 来源 | 拉取命令 |
+|------|----------|
+| Docker Hub | `docker pull massif01/chatraw:latest` |
+| GitHub Container Registry | `docker pull ghcr.io/massif-01/chatraw:latest` |
 
-```bash
-# Docker Hub
-docker pull massif01/chatraw:latest
-
-# GitHub Container Registry
-docker pull ghcr.io/massif-01/chatraw:latest
-```
+需要固定版本时使用相同标签格式，例如 `massif01/chatraw:v2.0.7`，版本号见 [Releases](https://github.com/massif-01/ChatRaw/releases)。
 
 ---
 
 ## 更新指南
 
-### 升级到 v2.0.0
+### Docker（docker run）
 
-如果你正在从 v1.x 升级：
-
-**Docker 用户：**
 ```bash
-# 停止并移除旧容器
+# 停止并删除当前容器
 docker stop chatraw && docker rm chatraw
 
-# 拉取新镜像
+# 拉取最新镜像（重要：否则会继续用旧镜像）
 docker pull massif01/chatraw:latest
 
-# 运行新容器（数据持久化在卷中）
-docker run -d -p 51111:51111 -v chatraw-data:/app/data massif01/chatraw:latest
+# 再次启动（使用同一卷，数据保留）
+docker run -d -p 51111:51111 -v chatraw-data:/app/data --name chatraw massif01/chatraw:latest
 ```
 
-或使用 docker-compose：
+### Docker Compose
+
 ```bash
-# 拉取新镜像
-docker-compose pull
-
-# 重启服务
-docker-compose up -d
+cd ChatRaw
+git pull origin main
+docker compose pull
+docker compose up -d
 ```
 
-**源码用户：**
+### 源码部署
+
 ```bash
 cd ChatRaw
 git pull origin main
@@ -510,11 +552,11 @@ pip install -r requirements.txt --upgrade
 python main.py
 ```
 
-**v2.0.0 重要变更：**
-- RAG 功能已迁移至插件
-- 如需使用 RAG 功能，请从插件市场安装"轻量 RAG 演示"插件
-- 默认主题改为亮色模式（可在设置中更改）
-- 所有对话历史和设置会自动保留
+### v2.0.0 重要变更（从 v1.x 升级时）
+
+- RAG 已改为插件：需要 RAG 时请在插件市场中安装 **轻量 RAG 演示**。
+- 默认主题为亮色（可在设置中修改）。
+- 对话历史与设置会保留。
 
 ---
 
