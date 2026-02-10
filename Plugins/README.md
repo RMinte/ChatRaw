@@ -376,6 +376,64 @@ For complex plugins that need full control over settings UI, use `customSettings
 })(window.ChatRawPlugin);
 ```
 
+### CSS Variables and Theming
+
+ChatRaw v2.1.1+ uses an HSL-based color token system. All CSS variables automatically adapt to light/dark themes via `[data-theme="dark"]`. Use these variables in your plugin UI for consistent styling.
+
+#### Color Variables
+
+Semantic color variables (ready to use, no `hsl()` wrapper needed):
+
+| Variable | Description |
+|----------|-------------|
+| `--bg-primary` | Main background |
+| `--bg-secondary` | Card/sidebar background |
+| `--bg-tertiary` | Muted/subtle background |
+| `--bg-hover` | Hover state background |
+| `--text-primary` | Primary text |
+| `--text-secondary` | Secondary text |
+| `--text-muted` | Muted/hint text (WCAG AA compliant) |
+| `--border-color` | Default border |
+| `--border-focus` | Focused element border |
+| `--accent-color` | Primary accent (buttons, etc.) |
+| `--on-accent` | Text on accent background |
+| `--success-color` | Success indicators |
+| `--error-color` | Error indicators |
+
+#### Spacing, Typography & Radius Tokens
+
+```css
+/* Spacing: 4px increments */
+var(--spacing-1)   /* 4px  */   var(--spacing-2)   /* 8px  */
+var(--spacing-3)   /* 12px */   var(--spacing-4)   /* 16px */
+var(--spacing-6)   /* 24px */   var(--spacing-8)   /* 32px */
+
+/* Typography */
+var(--text-xs)     /* 0.75rem */  var(--text-sm)   /* 0.875rem */
+var(--text-base)   /* 1rem */     var(--text-lg)   /* 1.125rem */
+
+/* Border Radius */
+var(--radius-sm)   /* 6px */    var(--radius-md)   /* 12px */
+var(--radius-lg)   /* 16px */   var(--radius-full) /* 9999px */
+```
+
+#### Example: Plugin Card with Theme Support
+
+```html
+<div style="
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-4);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+">
+    <span style="color: var(--text-secondary);">Description text</span>
+    <span style="color: var(--success-color);">Active</span>
+</div>
+```
+
+No extra work is needed for dark mode -- using these variables ensures your plugin looks correct in both themes.
+
 ### Proxy API (for external services)
 
 To protect API keys, use the proxy API for external service calls:
@@ -1251,6 +1309,64 @@ your-plugin/
     
 })(window.ChatRawPlugin);
 ```
+
+### CSS 变量与主题系统
+
+ChatRaw v2.1.1+ 使用基于 HSL 的颜色令牌系统。所有 CSS 变量会通过 `[data-theme="dark"]` 自动适配明暗主题。在插件 UI 中使用这些变量即可获得一致的样式。
+
+#### 颜色变量
+
+语义化颜色变量（可直接使用，无需 `hsl()` 包装）：
+
+| 变量 | 说明 |
+|------|------|
+| `--bg-primary` | 主背景 |
+| `--bg-secondary` | 卡片/侧边栏背景 |
+| `--bg-tertiary` | 柔和/次要背景 |
+| `--bg-hover` | 悬停状态背景 |
+| `--text-primary` | 主文本 |
+| `--text-secondary` | 次要文本 |
+| `--text-muted` | 辅助/提示文本（符合 WCAG AA 对比度） |
+| `--border-color` | 默认边框 |
+| `--border-focus` | 聚焦状态边框 |
+| `--accent-color` | 强调色（按钮等） |
+| `--on-accent` | 强调背景上的文本 |
+| `--success-color` | 成功指示 |
+| `--error-color` | 错误指示 |
+
+#### 间距、排版与圆角令牌
+
+```css
+/* 间距：4px 递增 */
+var(--spacing-1)   /* 4px  */   var(--spacing-2)   /* 8px  */
+var(--spacing-3)   /* 12px */   var(--spacing-4)   /* 16px */
+var(--spacing-6)   /* 24px */   var(--spacing-8)   /* 32px */
+
+/* 排版 */
+var(--text-xs)     /* 0.75rem */  var(--text-sm)   /* 0.875rem */
+var(--text-base)   /* 1rem */     var(--text-lg)   /* 1.125rem */
+
+/* 圆角 */
+var(--radius-sm)   /* 6px */    var(--radius-md)   /* 12px */
+var(--radius-lg)   /* 16px */   var(--radius-full) /* 9999px */
+```
+
+#### 示例：使用主题变量的插件卡片
+
+```html
+<div style="
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-4);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+">
+    <span style="color: var(--text-secondary);">描述文本</span>
+    <span style="color: var(--success-color);">已激活</span>
+</div>
+```
+
+无需为深色模式做额外工作 -- 使用上述变量即可确保插件在两种主题下正确显示。
 
 ### 代理 API（用于外部服务）
 
