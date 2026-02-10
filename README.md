@@ -56,7 +56,8 @@ Many developers, AI hardware vendors, and users just need a simple, lightweight 
 - **Document Parsing** - Native PDF, DOCX, TXT, MD parsing as chat context
 - **Vision AI Ready** - Multimodal image understanding with auto-compression
 - **Thinking Mode** - Support for reasoning models (DeepSeek-R1, Qwen, o1, etc.)
-- **Responsive Design** - Optimized for desktop, tablet, and mobile
+- **Responsive Design** - Optimized for desktop, tablet, and mobile with touch-friendly UI
+- **One-Click Copy** - Copy AI responses instantly (text only, no metadata)
 - **Bilingual UI** - English & Chinese with one-click switch
 - **Zero Registration** - Settings auto-saved locally
 - **One-Click Deploy** - Docker deployment in 30 seconds
@@ -138,7 +139,7 @@ ChatRaw features a complete **plugin system** to extend functionality:
 
 **Prerequisites**: [Docker](https://docs.docker.com/get-docker/) installed.
 
-Docker images are published to **Docker Hub** and **GitHub Container Registry**. To get the **latest** image (not a cached old one), always run `docker pull` with the tag you want before creating the container. Use `:latest` for the current release, or a version tag (e.g. `v2.0.7`) from [Releases](https://github.com/massif-01/ChatRaw/releases) for a fixed version.
+Docker images are published to **Docker Hub** and **GitHub Container Registry**. To get the **latest** image (not a cached old one), always run `docker pull` with the tag you want before creating the container. Use `:latest` for the current release, or a version tag (e.g. `v2.1.1`) from [Releases](https://github.com/massif-01/ChatRaw/releases) for a fixed version.
 
 **Supported platforms**: linux/amd64 (Intel/AMD), linux/arm64 (Apple Silicon, Raspberry Pi 4/5).
 
@@ -209,7 +210,7 @@ python main.py
 | Docker Hub | `docker pull massif01/chatraw:latest` |
 | GitHub Container Registry | `docker pull ghcr.io/massif-01/chatraw:latest` |
 
-Use the same tag for a specific version, e.g. `massif01/chatraw:v2.0.7` (see [Releases](https://github.com/massif-01/ChatRaw/releases)).
+Use the same tag for a specific version, e.g. `massif01/chatraw:v2.1.1` (see [Releases](https://github.com/massif-01/ChatRaw/releases)).
 
 ---
 
@@ -366,7 +367,8 @@ Apache License 2.0
 - **文档解析** - 原生支持 PDF、DOCX、TXT、MD 解析作为聊天上下文
 - **视觉 AI 就绪** - 多模态图片理解，自动压缩
 - **思考模式** - 支持推理模型（DeepSeek-R1、Qwen、o1 等）
-- **响应式设计** - 完美适配桌面、平板和移动设备
+- **响应式设计** - 完美适配桌面、平板和移动设备，触控友好
+- **一键复制** - 一键复制 AI 回复内容（纯文本，不含元数据）
 - **双语界面** - 中英文一键切换
 - **零注册** - 设置本地自动保存
 - **一键部署** - Docker 30 秒部署
@@ -443,7 +445,7 @@ ChatRaw 拥有完整的**插件系统**以扩展功能：
 
 **前置条件**：已安装 [Docker](https://docs.docker.com/get-docker/)。
 
-镜像发布在 **Docker Hub** 和 **GitHub Container Registry**。若想用**最新**镜像（避免用到本地缓存的旧镜像），在创建容器前请先执行一次 `docker pull`。使用 `:latest` 表示当前最新版本；如需固定版本，可使用 [Releases](https://github.com/massif-01/ChatRaw/releases) 中的版本号标签（如 `v2.0.7`）。
+镜像发布在 **Docker Hub** 和 **GitHub Container Registry**。若想用**最新**镜像（避免用到本地缓存的旧镜像），在创建容器前请先执行一次 `docker pull`。使用 `:latest` 表示当前最新版本；如需固定版本，可使用 [Releases](https://github.com/massif-01/ChatRaw/releases) 中的版本号标签（如 `v2.1.1`）。
 
 **支持平台**：linux/amd64（Intel/AMD）、linux/arm64（Apple Silicon、树莓派 4/5）。
 
@@ -514,7 +516,7 @@ python main.py
 | Docker Hub | `docker pull massif01/chatraw:latest` |
 | GitHub Container Registry | `docker pull ghcr.io/massif-01/chatraw:latest` |
 
-需要固定版本时使用相同标签格式，例如 `massif01/chatraw:v2.0.7`，版本号见 [Releases](https://github.com/massif-01/ChatRaw/releases)。
+需要固定版本时使用相同标签格式，例如 `massif01/chatraw:v2.1.1`，版本号见 [Releases](https://github.com/massif-01/ChatRaw/releases)。
 
 ---
 
