@@ -88,8 +88,16 @@ def call_gemini(prompt: str) -> str | None:
             model=model,
             contents=prompt,
         )
-        if response and response.text:
-            return response.text.strip()
+        if response:
+            text = getattr(response, "text", None)
+            if text:
+                return str(text).strip()
+            if hasattr(response, "candidates") and response.candidates:
+                c = response.candidates[0]
+                if hasattr(c, "content") and c.content and hasattr(c.content, "parts"):
+                    for p in c.content.parts:
+                        if hasattr(p, "text") and p.text:
+                            return str(p.text).strip()
         return None
     except Exception:
         return None
