@@ -163,6 +163,11 @@
     async function initExtraLanguages() {
         if (extraLangsLoaded || !window.hljs) return;
         
+        // Ensure hljs core is loaded first (app loads it lazily; plugin may run before that)
+        const loadHLJS = ChatRawPlugin?.utils?.loadHighlightJS;
+        if (loadHLJS) await loadHLJS();
+        if (!window.hljs) return;  // Cannot load lang packs without hljs core
+        
         const languages = [
             'typescript', 'go', 'rust', 'java', 'c', 'cpp', 'csharp',
             'ruby', 'php', 'swift', 'kotlin', 'sql', 'yaml', 'xml', 'shell'

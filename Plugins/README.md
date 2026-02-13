@@ -474,6 +474,12 @@ Helper functions for plugin developers:
 // Load external script
 await ChatRaw.utils.loadScript('https://cdn.example.com/lib.js');
 
+// Load external CSS (e.g. for bundled lib styles)
+await ChatRaw.utils.loadCSS('/api/plugins/your-plugin/lib/styles.min.css');
+
+// Ensure highlight.js core is loaded (call before loading hljs language packs)
+await ChatRaw.utils.loadHighlightJS();
+
 // Show toast notification
 ChatRaw.utils.showToast('Operation completed', 'success');
 
@@ -718,7 +724,7 @@ To distribute your plugin:
 
 For plugins that need to work completely offline, you can bundle dependencies in the `lib/` directory.
 
-**Important for plugin market**: If your plugin uses `lib/` files and will be installed from the market (GitHub URL), you **must** declare them in manifest `dependencies` using the format `/api/plugins/{plugin_id}/lib/{filename}`. Otherwise users get 404/MIME errors. Example:
+**Important for plugin market**: If your plugin uses `lib/` files and will be installed from the market (GitHub URL), you **must** declare them in manifest `dependencies` using the format `/api/plugins/{plugin_id}/lib/{filename}`. Otherwise users get 404/MIME errors. The framework loads `.css` files with `<link>` and `.js` files with `<script>`. Files named `hljs-*` are skipped (plugins load them on-demand after calling `ChatRaw.utils.loadHighlightJS()`). Example:
 
 ```json
 "dependencies": {
@@ -1417,6 +1423,12 @@ API 密钥安全存储在后端，会自动添加到请求中。
 ```javascript
 // 加载外部脚本
 await ChatRaw.utils.loadScript('https://cdn.example.com/lib.js');
+
+// 加载外部 CSS（如 bundled 的样式）
+await ChatRaw.utils.loadCSS('/api/plugins/your-plugin/lib/styles.min.css');
+
+// 确保 highlight.js 核心已加载（使用 hljs 语言包前需先调用）
+await ChatRaw.utils.loadHighlightJS();
 
 // 显示提示消息
 ChatRaw.utils.showToast('操作完成', 'success');

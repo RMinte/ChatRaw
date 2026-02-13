@@ -1623,6 +1623,12 @@ function app() {
                     // Load external script dynamically
                     loadScript: (url) => appInstance.loadScript(url),
                     
+                    // Load external CSS dynamically
+                    loadCSS: (url) => appInstance.loadCSS(url),
+                    
+                    // Ensure highlight.js is loaded (for plugins that use hljs language packs)
+                    loadHighlightJS: () => typeof loadHighlightJS === 'function' ? loadHighlightJS() : Promise.resolve(),
+                    
                     // Show toast notification
                     showToast: (message, type = '') => appInstance.showToast(message, type),
                     
@@ -1900,14 +1906,25 @@ function app() {
                     for (const [name, url] of Object.entries(plugin.dependencies)) {
                         if (!this.loadedPluginDeps[name]) {
                             try {
-                                await this.loadScript(url);
-                                // Common library detection patterns
-                                if (name === 'xlsx' && window.XLSX) {
-                                    this.loadedPluginDeps[name] = window.XLSX;
-                                } else if (name === 'pdfjs' && window.pdfjsLib) {
-                                    this.loadedPluginDeps[name] = window.pdfjsLib;
-                                } else if (window[name]) {
-                                    this.loadedPluginDeps[name] = window[name];
+                                // CSS must use loadCSS, not loadScript
+                                if (typeof url === 'string' && url.endsWith('.css')) {
+                                    await this.loadCSS(url);
+                                    this.loadedPluginDeps[name] = true;
+                                } else if (name.startsWith('hljs-')) {
+                                    // hljs language packs loaded on-demand by plugin (need hljs core first)
+                                    continue;
+                                } else {
+                                    await this.loadScript(url);
+                                    // Common library detection patterns
+                                    if (name === 'xlsx' && window.XLSX) {
+                                        this.loadedPluginDeps[name] = window.XLSX;
+                                    } else if (name === 'pdfjs' && window.pdfjsLib) {
+                                        this.loadedPluginDeps[name] = window.pdfjsLib;
+                                    } else if (window[name]) {
+                                        this.loadedPluginDeps[name] = window[name];
+                                    } else {
+                                        this.loadedPluginDeps[name] = true;
+                                    }
                                 }
                             } catch (depError) {
                                 console.error(`[Plugin] Failed to load dependency ${name} for ${plugin.id}:`, depError);
@@ -1947,6 +1964,22 @@ function app() {
                 script.onload = resolve;
                 script.onerror = () => reject(new Error(`Failed to load script: ${url}`));
                 document.head.appendChild(script);
+            });
+        },
+        
+        loadCSS(url) {
+            return new Promise((resolve, reject) => {
+                const existing = document.querySelector(`link[href="${url}"]`);
+                if (existing) {
+                    resolve();
+                    return;
+                }
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = url;
+                link.onload = resolve;
+                link.onerror = () => reject(new Error(`Failed to load CSS: ${url}`));
+                document.head.appendChild(link);
             });
         },
         

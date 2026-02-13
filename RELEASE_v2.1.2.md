@@ -11,6 +11,8 @@
 ### Markdown 渲染增强 (v1.0.1)
 - 添加 manifest dependencies，解决从市场安装时 KaTeX/Mermaid/lib 404
 - 安装时自动下载全部 18 个 lib 文件
+- 修复：CSS 依赖用 loadCSS 加载（不再误用 loadScript）
+- 修复：hljs 语言包在 hljs 核心加载后再加载，避免 "hljs is not defined"
 
 ### 插件设置
 - 修复 select 类型 options 为对象数组时的 Alpine x-for key 警告
