@@ -234,21 +234,23 @@ jobs:
             const additions = files.reduce((a, f) => a + (f.additions || 0), 0);
             const deletions = files.reduce((a, f) => a + (f.deletions || 0), 0);
             const autoOk = '${{ needs.auto-check.outputs.syntax_ok }}' === 'true';
-            const body = `## 🤖 自动审查报告
-
-### 变更统计
-- 变更文件：${files.length}
-- 新增行：+${additions}
-- 删除行：-${deletions}
-
-### 静态检查
-${autoOk ? '✅ 通过' : '❌ 未通过'}
-
-### AI 代码审查
-${aiResult}
-
----
-*本报告由 CI 自动生成*`;
+            const body = [
+              '## 🤖 自动审查报告',
+              '',
+              '### 变更统计',
+              '- 变更文件：' + files.length,
+              '- 新增行：+' + additions,
+              '- 删除行：-' + deletions,
+              '',
+              '### 静态检查',
+              autoOk ? '✅ 通过' : '❌ 未通过',
+              '',
+              '### AI 代码审查',
+              aiResult,
+              '',
+              '---',
+              '*本报告由 CI 自动生成*',
+            ].join('\n');
 
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
