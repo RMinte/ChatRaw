@@ -834,7 +834,7 @@ function app() {
             } catch (e) {
                 if (e.name === 'AbortError') {
                     // User stopped generation, keep partial content
-                    reader.cancel();
+                    try { await reader.cancel(); } catch (_) { /* ignore */ }
                 } else {
                     throw e;
                 }

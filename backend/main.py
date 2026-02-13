@@ -598,29 +598,20 @@ class LLMService:
         if use_rag:
             rag_context, rag_references = await self.build_rag_context(message)
         
-        # Web content context
-        web_context = ""
-        if web_content:
-            web_context = f"以下是用户提供的网页内容作为参考 (来源: {web_url}):\n---\n{web_content}\n---\n\n"
+        # User message is already in history (saved with web_content). Only add RAG to last message if needed.
+        if rag_context and messages and messages[-1].get("role") == "user":
+            messages[-1] = {"role": "user", "content": f"{rag_context}User question: {messages[-1]['content']}"}
         
-        # User message
-        final_message = message
-        if rag_context:
-            final_message = f"{rag_context}User question: {message}"
-        if web_context:
-            final_message = f"{web_context}{final_message}"
-        
-        # Handle image
-        if image_base64 and config.capability.vision:
-            messages.append({
+        # For vision: replace last user message with multimodal format (text + image)
+        if image_base64 and config.capability.vision and messages and messages[-1].get("role") == "user":
+            text_content = messages[-1]["content"]
+            messages[-1] = {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": final_message},
+                    {"type": "text", "text": text_content},
                     {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
                 ]
-            })
-        else:
-            messages.append({"role": "user", "content": final_message})
+            }
         
         # API request
         url = config.api_url.rstrip("/") + "/chat/completions"
@@ -742,27 +733,20 @@ class LLMService:
         if use_rag:
             rag_context, rag_references = await self.build_rag_context(message)
         
-        # Web content context
-        web_context = ""
-        if web_content:
-            web_context = f"以下是用户提供的网页内容作为参考 (来源: {web_url}):\n---\n{web_content}\n---\n\n"
+        # User message is already in history (saved with web_content). Only add RAG to last message if needed.
+        if rag_context and messages and messages[-1].get("role") == "user":
+            messages[-1] = {"role": "user", "content": f"{rag_context}User question: {messages[-1]['content']}"}
         
-        final_message = message
-        if rag_context:
-            final_message = f"{rag_context}User question: {message}"
-        if web_context:
-            final_message = f"{web_context}{final_message}"
-        
-        if image_base64 and config.capability.vision:
-            messages.append({
+        # For vision: replace last user message with multimodal format
+        if image_base64 and config.capability.vision and messages and messages[-1].get("role") == "user":
+            text_content = messages[-1]["content"]
+            messages[-1] = {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": final_message},
+                    {"type": "text", "text": text_content},
                     {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
                 ]
-            })
-        else:
-            messages.append({"role": "user", "content": final_message})
+            }
         
         url = config.api_url.rstrip("/") + "/chat/completions"
         headers = {"Content-Type": "application/json"}
@@ -1354,8 +1338,12 @@ async def chat(request: Request):
         chat_obj = db.create_chat("New Chat")
         chat_id = chat_obj.id
     
-    # Save user message
-    db.add_message(chat_id, "user", message)
+    # Save user message (include web/document content so it persists for follow-up questions)
+    message_to_save = message
+    if web_content:
+        web_context = f"以下是用户提供的网页/文档内容作为参考 (来源: {web_url or '附件'}):\n---\n{web_content}\n---\n\n"
+        message_to_save = f"{web_context}{message}"
+    db.add_message(chat_id, "user", message_to_save)
     
     settings = db.get_settings()
     

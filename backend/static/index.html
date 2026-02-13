@@ -851,8 +851,8 @@
                                 <!-- Select -->
                                 <template x-if="setting.type === 'select'">
                                     <select class="input-minimal" x-model="pluginSettingsValues[setting.id]">
-                                        <template x-for="opt in (setting.options || [])" :key="opt">
-                                            <option :value="opt" x-text="opt"></option>
+                                        <template x-for="(opt, idx) in (setting.options || [])" :key="setting.id + '-' + idx">
+                                            <option :value="(typeof opt === 'object' && opt && 'value' in opt) ? opt.value : opt" x-text="(typeof opt === 'object' && opt && 'label' in opt) ? opt.label : opt"></option>
                                         </template>
                                     </select>
                                 </template>

@@ -1,6 +1,6 @@
 {
   "id": "markdown-enhancer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "name": {
     "en": "Markdown Renderer Plus",
     "zh": "Markdown 渲染增强"
@@ -15,6 +15,26 @@
   "main": "main.js",
   "type": "message_processor",
   "hooks": ["after_receive"],
+  "dependencies": {
+    "katex-css": "/api/plugins/markdown-enhancer/lib/katex.min.css",
+    "katex-js": "/api/plugins/markdown-enhancer/lib/katex.min.js",
+    "mermaid": "/api/plugins/markdown-enhancer/lib/mermaid.min.js",
+    "hljs-c": "/api/plugins/markdown-enhancer/lib/hljs-c.min.js",
+    "hljs-cpp": "/api/plugins/markdown-enhancer/lib/hljs-cpp.min.js",
+    "hljs-csharp": "/api/plugins/markdown-enhancer/lib/hljs-csharp.min.js",
+    "hljs-go": "/api/plugins/markdown-enhancer/lib/hljs-go.min.js",
+    "hljs-java": "/api/plugins/markdown-enhancer/lib/hljs-java.min.js",
+    "hljs-kotlin": "/api/plugins/markdown-enhancer/lib/hljs-kotlin.min.js",
+    "hljs-php": "/api/plugins/markdown-enhancer/lib/hljs-php.min.js",
+    "hljs-ruby": "/api/plugins/markdown-enhancer/lib/hljs-ruby.min.js",
+    "hljs-rust": "/api/plugins/markdown-enhancer/lib/hljs-rust.min.js",
+    "hljs-shell": "/api/plugins/markdown-enhancer/lib/hljs-shell.min.js",
+    "hljs-sql": "/api/plugins/markdown-enhancer/lib/hljs-sql.min.js",
+    "hljs-swift": "/api/plugins/markdown-enhancer/lib/hljs-swift.min.js",
+    "hljs-typescript": "/api/plugins/markdown-enhancer/lib/hljs-typescript.min.js",
+    "hljs-xml": "/api/plugins/markdown-enhancer/lib/hljs-xml.min.js",
+    "hljs-yaml": "/api/plugins/markdown-enhancer/lib/hljs-yaml.min.js"
+  },
   "settings": [
     {
       "id": "enableKatex",

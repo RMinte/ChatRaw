@@ -89,7 +89,7 @@ your-plugin/
 | `type` | string | Yes | Plugin type (see below) |
 | `hooks` | array | Yes | List of hooks the plugin uses |
 | `fileTypes` | array | No | File extensions for document_parser type. When plugin is enabled, these extensions are automatically added to the file upload dialog. |
-| `dependencies` | object | No | External JS libraries (name: CDN URL) |
+| `dependencies` | object | No | JS/CSS libraries: CDN URL for remote, or `/api/plugins/{id}/lib/{filename}` for bundled lib. **Required for lib/ plugins when publishing to market** — list all lib files so they are downloaded during install. |
 | `settings` | array | No | Plugin settings schema (for standard settings UI) |
 | `customSettings` | boolean | No | Set to `true` for custom settings UI |
 | `proxy` | array | No | External API services requiring API keys |
@@ -378,7 +378,7 @@ For complex plugins that need full control over settings UI, use `customSettings
 
 ### CSS Variables and Theming
 
-ChatRaw v2.1.1+ uses an HSL-based color token system. All CSS variables automatically adapt to light/dark themes via `[data-theme="dark"]`. Use these variables in your plugin UI for consistent styling.
+ChatRaw v2.1.2+ uses an HSL-based color token system. All CSS variables automatically adapt to light/dark themes via `[data-theme="dark"]`. Use these variables in your plugin UI for consistent styling.
 
 #### Color Variables
 
@@ -718,6 +718,16 @@ To distribute your plugin:
 
 For plugins that need to work completely offline, you can bundle dependencies in the `lib/` directory.
 
+**Important for plugin market**: If your plugin uses `lib/` files and will be installed from the market (GitHub URL), you **must** declare them in manifest `dependencies` using the format `/api/plugins/{plugin_id}/lib/{filename}`. Otherwise users get 404/MIME errors. Example:
+
+```json
+"dependencies": {
+  "katex-css": "/api/plugins/my-plugin/lib/katex.min.css",
+  "katex-js": "/api/plugins/my-plugin/lib/katex.min.js",
+  "mermaid": "/api/plugins/my-plugin/lib/mermaid.min.js"
+}
+```
+
 **Loading CSS files** (the framework only supports JS, CSS must be loaded manually):
 
 ```javascript
@@ -1023,7 +1033,7 @@ your-plugin/
 | `type` | string | 是 | 插件类型（见下表） |
 | `hooks` | array | 是 | 插件使用的钩子列表 |
 | `fileTypes` | array | 否 | document_parser 类型的文件扩展名。插件启用后，这些扩展名会自动添加到文件上传对话框中。 |
-| `dependencies` | object | 否 | 外部 JS 库（名称: CDN URL） |
+| `dependencies` | object | 否 | JS/CSS 库：远程用 CDN URL，本地用 `/api/plugins/{id}/lib/{filename}`。**发布到插件市场且含 lib/ 时必填** — 列出所有 lib 文件以便安装时下载。 |
 | `settings` | array | 否 | 插件设置架构（用于标准设置 UI） |
 | `customSettings` | boolean | 否 | 设为 `true` 启用自定义设置 UI |
 | `proxy` | array | 否 | 需要 API Key 的外部服务 |
@@ -1312,7 +1322,7 @@ your-plugin/
 
 ### CSS 变量与主题系统
 
-ChatRaw v2.1.1+ 使用基于 HSL 的颜色令牌系统。所有 CSS 变量会通过 `[data-theme="dark"]` 自动适配明暗主题。在插件 UI 中使用这些变量即可获得一致的样式。
+ChatRaw v2.1.2+ 使用基于 HSL 的颜色令牌系统。所有 CSS 变量会通过 `[data-theme="dark"]` 自动适配明暗主题。在插件 UI 中使用这些变量即可获得一致的样式。
 
 #### 颜色变量
 
@@ -1651,6 +1661,16 @@ const allData = ChatRaw.storage.getAll(PLUGIN_ID);
 ### 进阶：本地依赖和 CSS 加载
 
 对于需要完全离线运行的插件，可以将依赖打包到 `lib/` 目录中。
+
+**插件市场发布须知**：若插件使用 `lib/` 且用户从市场（GitHub URL）安装，**必须在** manifest 的 `dependencies` 中声明所有 lib 文件，格式为 `/api/plugins/{plugin_id}/lib/{filename}`，否则会 404/ MIME 报错。示例：
+
+```json
+"dependencies": {
+  "katex-css": "/api/plugins/my-plugin/lib/katex.min.css",
+  "katex-js": "/api/plugins/my-plugin/lib/katex.min.js",
+  "mermaid": "/api/plugins/my-plugin/lib/mermaid.min.js"
+}
+```
 
 **加载 CSS 文件**（框架仅支持 JS，CSS 需要手动加载）：
 

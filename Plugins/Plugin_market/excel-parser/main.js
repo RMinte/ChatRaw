@@ -562,10 +562,12 @@
                 const workbook = xlsxLib.read(arrayBuffer, {
                     type: 'array',
                     cellDates: true,      // Parse dates as Date objects
+                    cellNF: true,         // Include number format (cell.z) for date/currency
                     cellFormula: false,   // Don't need formula text, just results
-                    cellText: true,       // Get formatted text
+                    cellText: true,       // Get formatted text (cell.w)
                     cellStyles: false,    // Don't need styles
                     sheetRows: (settings.max_rows || 1000) + 1,  // +1 for header detection
+                    raw: false,           // Use formatted values where available
                     WTF: false            // Don't throw on unexpected features
                 });
                 
