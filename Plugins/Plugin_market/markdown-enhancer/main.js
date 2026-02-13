@@ -41,7 +41,8 @@
             copy: 'Copy',
             copyMessage: 'Copy message',
             renderError: 'Render error',
-            loading: 'Loading...'
+            loading: 'Loading...',
+            emptyDiagram: 'Empty diagram'
         },
         zh: {
             copied: '已复制！',
@@ -49,13 +50,21 @@
             copy: '复制',
             copyMessage: '复制消息',
             renderError: '渲染错误',
-            loading: '加载中...'
+            loading: '加载中...',
+            emptyDiagram: '空图表'
         }
     };
     
     function t(key) {
         const lang = ChatRawPlugin?.utils?.getLanguage?.() || 'en';
         return i18n[lang]?.[key] || i18n.en[key] || key;
+    }
+
+    function escapeHtml(str) {
+        if (typeof str !== 'string') return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
     
     // ============ CSS Loader ============
@@ -407,8 +416,8 @@
     async function processMermaidInElement(element) {
         if (!window.mermaid || settings.enableMermaid === false) return;
         
-        // Find mermaid code blocks
-        const mermaidBlocks = element.querySelectorAll('pre > code.language-mermaid, pre > code.hljs.language-mermaid');
+        // Find mermaid code blocks (marked+hljs use language-mermaid; fallback for class*="mermaid")
+        const mermaidBlocks = element.querySelectorAll('pre > code.language-mermaid, pre > code.hljs.language-mermaid, pre > code[class*="mermaid"]');
         
         for (const codeBlock of mermaidBlocks) {
             const pre = codeBlock.parentElement;
@@ -417,9 +426,16 @@
             pre.dataset.mermaidProcessed = 'true';
             
             let code = codeBlock.textContent.trim();
-            // Wrap node labels containing % in quotes to fix Mermaid parse error (PCT token)
-            // e.g. I[税率: (A+B) × 8% = 6,804.0] -> I["税率: (A+B) × 8% = 6,804.0"]
-            code = code.replace(/\[(?!\")([^\]]*%[^\]]*)\]/g, (_, label) => {
+            if (!code) {
+                const emptyContainer = document.createElement('div');
+                emptyContainer.className = 'mermaid-error-container';
+                emptyContainer.innerHTML = `<strong>${escapeHtml(t('renderError'))}:</strong> ${escapeHtml(t('emptyDiagram'))}`;
+                pre.parentNode.replaceChild(emptyContainer, pre);
+                continue;
+            }
+            // Wrap node labels containing %, (, ), :, | in quotes to fix Mermaid parse errors
+            // e.g. I[税率: (A+B) × 8%] -> I["税率: (A+B) × 8%"]; B1[音柱 (JBL)] -> B1["音柱 (JBL)"]
+            code = code.replace(/\[(?!\")([^\]]*[%():|][^\]]*)\]/g, (_, label) => {
                 const escaped = label.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
                 return `["${escaped}"]`;
             });
@@ -469,8 +485,8 @@
                 console.error('[MarkdownEnhancer] Mermaid render error:', e);
                 container.className = 'mermaid-error-container';
                 container.innerHTML = `
-                    <strong>${t('renderError')}:</strong> ${e.message || 'Unknown error'}
-                    <pre>${code}</pre>
+                    <strong>${escapeHtml(t('renderError'))}:</strong> ${escapeHtml(e.message || 'Unknown error')}
+                    <pre>${escapeHtml(code)}</pre>
                 `;
             }
         }
