@@ -144,8 +144,8 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GEMINI_MODEL_FALLBACK: ${{ vars.GEMINI_MODEL_FALLBACK || 'gemini-2.5-flash' }}
-          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || '' }}
-          OPENAI_MODEL: ${{ vars.OPENAI_MODEL || 'gpt-4o-mini' }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
+          OPENAI_MODEL: ${{ vars.OPENAI_MODEL }}
         run: |
           python ../main-scripts/.github/scripts/ai_review.py || echo "⚠️ AI 审查未执行：请配置 GEMINI_API_KEY 或 OPENAI_API_KEY" > ai_review_result.txt
 
