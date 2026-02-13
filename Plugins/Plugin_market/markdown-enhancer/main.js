@@ -425,6 +425,8 @@
             pre.dataset.mermaidProcessed = 'true';
             
             let code = codeBlock.textContent.trim();
+            // Fix common LLM output: "sequence" -> "sequenceDiagram"
+            code = code.replace(/^\s*sequence\s*$/m, 'sequenceDiagram');
             if (!code) {
                 const emptyContainer = document.createElement('div');
                 emptyContainer.className = 'mermaid-error-container';
