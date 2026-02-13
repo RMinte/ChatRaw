@@ -52,14 +52,14 @@
     },
     {
       "id": "excel-parser",
-      "version": "1.0.0",
+      "version": "1.0.1",
       "name": {
-        "en": "Excel Parser",
-        "zh": "Excel 解析器"
+        "en": "Excel Parser Pro",
+        "zh": "Excel 增强解析器"
       },
       "description": {
-        "en": "Parse Excel files (.xlsx, .xls) into model context to enhance responses",
-        "zh": "解析 Excel 文件（.xlsx, .xls）置入模型上下文，用于增强模型回答"
+        "en": "Advanced Excel parser with formula, date, number format support. Offline-ready with bundled SheetJS.",
+        "zh": "增强版 Excel 解析器，支持公式、日期、数字格式化。内置 SheetJS 库，离线可用。"
       },
       "author": "ChatRaw",
       "type": "document_parser",
